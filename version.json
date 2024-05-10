@@ -1,1 +1,15 @@
-{"version":4.0,"dl_url":"https://api.7585.net.cn/lanzou/api.php?url=https://wwua.lanzouy.com/iHFXN1kzti0j&type=down&pwd=5prq","note":"版本更新测试"}
+{
+    "beta": {
+        "ver": 5,
+        "url": "https://www.jikexinao.com/api/public/file/db5abdeed0864b3393a4ac6df3e6db3d.exe",
+        "note": "# Beta频道5.0更新 <br>  ## 更新内容  <br> 测试文本"
+    },
+    "release": {
+        "ver": 4.5,
+        "url": "https://www.jikexinao.com/api/public/file/db5abdeed0864b3393a4ac6df3e6db3d.exe",
+        "note": "# 正式版4.5更新 <br>  ## 更新内容  <br> 测试文本"
+    },
+    "version": 4,
+    "dl_url": "https://api.7585.net.cn/lanzou/api.php?url=https://www.lanzoub.com/iHFXN1kzti0j&type=down&pwd=5prq",
+    "note": "版本更新测试"
+}
