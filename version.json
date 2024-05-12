@@ -1,7 +1,7 @@
 {
     "beta": {
         "ver": 5,
-        "url": "http://api.wer.plus/api/lanz?url=https://www.lanzoub.com/i26zf1yh5ilc&pwd=gv28",
+        "url": "https://api.wer.plus/api/lanz?url=https://www.lanzoub.com/i26zf1yh5ilc&pwd=gv28&t=1",
         "note": "# Beta频道5.0更新 <br>  ## 更新内容  <br> 测试文本"
     },
     "release": {
