@@ -1,13 +1,13 @@
 {
     "beta": {
-        "ver": 5.03,
-        "url": "https://api.ecylt.top/v1/lanzou_link?url=https://www.lanzoub.com/imnyT1yhl0gf&pwd=gv28&type=down",
-        "note": "# Beta频道5.0更新 <br>  ## 更新内容  <br> 测试文本"
+        "ver": 5.1,
+        "url": "https://api.leafone.cn/api/lanzou?url=https://wwo.lanzouo.com/iIPRF21vclad&pwd=1234&type=down",
+        "note": "# Beta频道5.1更新 <br>  ## 更新内容  <br> 测试文本"
     },
     "release": {
-        "ver": 5.0,
-        "url": "https://api.ecylt.top/v1/lanzou_link?url=https://www.lanzoub.com/iSCT21z15bze&pwd=1234&type=down",
-        "note": "正式版5.0更新 \n  更新内容  \n 重新制作界面，增加接口"
+        "ver": 5.1，
+        "url": "https://api.leafone.cn/api/lanzou?url=https://wwo.lanzouo.com/iIPRF21vclad&pwd=1234&type=down",
+        "note": "小树壁纸v5.1更新日志:[功能]主题切换[功能]窗口背景切换（需启用未经验证的预览设置项）\n[功能]刷新主题[功能]高DPI适配[重构]标题栏\n[重构]设置[修复]无法正常捕获更新异常\n[修复]无法正常捕获网络异常\n[修复]无法正常捕获Bing源下获取数据异常\n[修复]无法正常捕获下载异常"
     },
     "version": 4,
     "dl_url": "https://api.7585.net.cn/lanzou/api.php?url=https://www.lanzoub.com/iHFXN1kzti0j&type=down&pwd=5prq",
