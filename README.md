@@ -12,6 +12,12 @@ If you think it's good, why not give it a Star.
 
 如果觉得不错，不妨点个Star吧。
 
+## Release Notes / 版本发行说明
+
+The version number naming rule used by this program: [Semantic Versioning 2.0.0](https://semver.org/)
+
+本程序版本号使用命名使用规则：[语义化版本 2.0.0](https://semver.org/lang/zh-CN/)
+
 ## Star History / Star 趋势
 
 [![Star History Chart](https://api.star-history.com/svg?repos=shu-shu-1/BingWallpaper&type=Date)](https://star-history.com/#shu-shu-1/BingWallpaper&Date)
