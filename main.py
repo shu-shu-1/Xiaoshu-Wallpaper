@@ -21,6 +21,7 @@ import tkintertools as tkt
 from plyer import notification
 from PIL import Image,ImageFile
 from colorama import Fore, Style
+from itertools import zip_longest
 
 ### ✨ 初始化
 
@@ -67,8 +68,8 @@ logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG, format=LOG_FORMAT,en
 logging.info("------程序启动------")
 logging.info("日志加载成功")
 # logging.error("hello")
-VER = "V6.0 Indev-24.9.3"
-software_VER="6.0.0.24.9.3.1"
+VER = "v6.0.0-alpha.1"
+software_VER="6.0.0.a.1"
 root=tkt.Tk(title=f"小树壁纸{VER}")
 logging.info("初始化窗口成功")
 root.center()
@@ -124,7 +125,7 @@ def resize_image(image_path, new_height):
     # 调整图片大小
     resized_image = original_image.resize((new_width, new_height), Image.LANCZOS)
     return tkt.PhotoImage(resized_image)
-def copy_and_set_wallpaper(image_path):
+def copy_and_set_wallpaper(image_path,*args):
     shutil.copyfile(image_path, f"C:\\xiaoshu_wallpaper\\{os.path.basename(image_path)}")
     set_wallpaper(f"C:\\xiaoshu_wallpaper\\{os.path.basename(image_path)}")
 def set_wallpaper(filelink):
@@ -133,30 +134,65 @@ def set_wallpaper(filelink):
     Hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, r'Control Panel\Desktop')
     win32api.RegSetValueEx(Hkey, 'WallPaper', 0, win32con.REG_SZ, filelink)
     win32api.RegCloseKey(Hkey)
-def compared_version(ver1, ver2):
-    """
-    传入不带英文的版本号,特殊情况："10.12.2.6.5">"10.12.2.6"
-    :param ver1: 版本号1
-    :param ver2: 版本号2
-    :return: ver1< = >ver2返回-1/0/1
-    """
-    list1 = str(ver1).split(".")
-    list2 = str(ver2).split(".")
-    # 循环次数为短的列表的len
-    for i in range(len(list1)) if len(list1) < len(list2) else range(len(list2)):
-        if int(list1[i]) == int(list2[i]):
-            pass
-        elif int(list1[i]) < int(list2[i]):
-            return -1
-        else:
+def compare_versions(version1, version2):
+    # 正则表达式匹配以v开头的版本号，后面跟随主版本号、次版本号、修订号、可选的先行版本号和版本编译信息
+    semver_regex = r'^v(\d+)\.(\d+)\.(\d+)(?:-([\dA-Za-z-]+(?:\.[\dA-Za-z-]+)*)(?:\.(\d+))?)?(?:\+([\dA-Za-z-]+(?:\.[\dA-Za-z-]+)*))?$'
+    
+    # 将版本号转换为整数元组和先行版本号字符串
+    def parse_version(version):
+        match = re.match(semver_regex, version)
+        if not match:
+            raise ValueError(f"版本号 '{version}' 格式不正确。")
+        major, minor, patch = map(int, match.groups()[:3])
+        prerelease = match.group(4) if match.group(4) else None
+        prerelease_number = int(match.group(5)) if match.group(5) else None
+        return (major, minor, patch, prerelease, prerelease_number)
+    
+    # 解析两个版本号
+    v1 = parse_version(version1)
+    v2 = parse_version(version2)
+    
+    # 比较主版本号、次版本号和修订号
+    for i in range(3):
+        if v1[i] > v2[i]:
             return 1
-    # 循环结束，哪个列表长哪个版本号高
-    if len(list1) == len(list2):
-        return 0
-    elif len(list1) < len(list2):
-        return -1
-    else:
-        return 1
+        elif v1[i] < v2[i]:
+            return -1
+    
+    # 比较先行版本号
+    if v1[3] and v2[3]:
+        # 比较先行版本号的每个部分
+        for pre1, pre2 in zip_longest(v1[3].split('.'), v2[3].split('.'), fillvalue=''):
+            if pre1.isdigit() and pre2.isdigit():
+                # 比较数字部分
+                if int(pre1) > int(pre2):
+                    return 1
+                if int(pre1) < int(pre2):
+                    return -1
+            else:
+                # 比较非数字部分（字母或连字符）
+                if pre1 > pre2:
+                    return 1
+                if pre1 < pre2:
+                    return -1
+    elif v1[3]:
+        return -1  # v1有先行版本号，v2没有
+    elif v2[3]:
+        return 1  # v1没有先行版本号，v2有
+    
+    # 比较先行版本号后面的数字
+    if v1[4] is not None and v2[4] is not None:
+        if v1[4] > v2[4]:
+            return 1
+        if v1[4] < v2[4]:
+            return -1
+    elif v1[4] is not None:
+        return -1  # v1有数字，v2没有
+    elif v2[4] is not None:
+        return 1  # v1没有数字，v2有
+    
+    # 版本号完全相等
+    return 0
 
 def copy_image_to_clipboard(image_path):
     img = Image.open(image_path)
@@ -412,7 +448,7 @@ def check_for_update(ty : str):
             web_ver=update_web_json[ty]["ver"]
             update_f_url=update_web_json[ty]["url"]
             update_note=update_web_json[ty]["note"]
-            if compared_version(web_ver,software_VER) == 1:
+            if compare_versions(web_ver,software_VER) == 1:
                 return [True,web_ver,update_note]
             else:
                 return False
@@ -641,7 +677,7 @@ back_canvas.bind("<Button-1>", lambda event: main())
 tkt.Text(canvas_about, (100, 100), text="关于", fontsize=50)
 tkt.Text(canvas_about, (100, 150), text="小树壁纸", fontsize=35, anchor="w")
 tkt.Text(canvas_about, (100, 185), text=f"{VER}(内部版本号：{software_VER})", fontsize=20, anchor="w")
-tkt.Text(canvas_about, (100, 250), text="制作：小树\n出品：小树工作室\n感谢所有参与测试的人！\n\n本程序基于The GNU General Public License v3.0开源", fontsize=20, anchor="nw")
+tkt.Text(canvas_about, (100, 250), text="制作：小树\n出品：小树工作室\n感谢所有参与测试的人！\n\n本程序基于AGPL-3.0 license开源", fontsize=20, anchor="nw")
 kaiyuan=tkt.Text(canvas_about, (100, 385), text="感谢开源项目tkintertools:https://github.com/Xiaokang2022/tkintertools\n本程序仅供个人学习交流使用，请勿用于商业用途！", fontsize=20, anchor="nw")
 canvas_about.tag_bind(kaiyuan, "<Button-1>", lambda event: webbrowser.open("https://github.com/Xiaokang2022/tkintertools"))
 back_about = tkt.Canvas(canvas_about, zoom_item=True, keep_ratio="min", free_anchor=True)
@@ -671,8 +707,48 @@ tkt.Text(back_wallpaper, (0, 0), text="", fontsize=40, family="Segoe Fluent l
 back_wallpaper.bind("<Button-1>", lambda event: main())
 canvas_wallpaper_detail=tkt.Canvas(root, zoom_item=True, keep_ratio="min", free_anchor=True)
 #### 壁纸面板-壁纸详情
-def wallpaper_detail():
+def wallpaper_detail(*args):
     canvas_wallpaper.place_forget()
+    def save_as():
+        file_path = filedialog.asksaveasfilename(title="保存壁纸", filetypes=[("图片文件", "*.jpg")])
+        if file_path:
+            shutil.copyfile(wallpaper_path, file_path)
+            os.system(f"explorer.exe /select,\"{file_path.replace("/","\\")}\"")
+
+            notification.notify(
+                title='壁纸保存成功',
+                message=f'壁纸文件已保存至{file_path}\n文件名：{os.path.basename(file_path)}',
+                app_icon="./assets/icon/icon.ico",
+                timeout=3,
+            )
+    def download():
+        shutil.copyfile(wallpaper_path, f"{cog["download_path"]}\\{os.path.basename(wallpaper_path)}")
+        os.system(f"explorer.exe /select,\"{cog["download_path"]}\\{os.path.basename(wallpaper_path)}\"")
+        notification.notify(
+            title='壁纸下载完成',
+            message=f'壁纸文件已保存至{cog["download_path"]}\n文件名：{os.path.basename(wallpaper_path)}',
+            app_icon="./assets/icon/icon.ico",
+            timeout=3,
+        )
+    def copy_wallpaper():
+
+        copy_image_to_clipboard(wallpaper_path)
+        notification.notify(
+            title='壁纸复制成功',
+            message='壁纸文件已复制到剪贴板啦~',  
+            app_icon="./assets/icon/icon.ico",
+            timeout=3,
+        )
+    def _set_wallpaper():
+        copy_and_set_wallpaper(wallpaper_path)
+
+        notification.notify(
+            title='壁纸设置完成',
+            message=f'壁纸文件位于：C:\\xiaoshu_wallpaper\\\n文件名：{os.path.basename(wallpaper_path)}\n请勿删除！',
+            app_icon="./assets/icon/icon.ico",
+            timeout=3,
+        )
+
     ImageFile.LOAD_TRUNCATED_IMAGES = True
     # canvas_wallpaper.delete("all")
     canvas_wallpaper_detail.place_forget()
@@ -687,7 +763,29 @@ def wallpaper_detail():
     # tkt.Text(canvas_wallpaper_detail, (100, 200), text="Unsplash", fontsize=30,anchor="nw")
     # tkt.Text(canvas_wallpaper_detail, (100, 250), text="Wallhaven", fontsize=30,anchor="nw")
     tkt.Image(canvas_wallpaper_detail,[280,300],image=resize_image(wallpaper_path,250))
-    tkt.Button(canvas_wallpaper_detail, (100, 600), text="设为壁纸", command=lambda: copy_and_set_wallpaper(wallpaper_path))
+    
+    # tkt.Button(canvas_wallpaper_detail, (100, 600), text="设为壁纸", command=lambda: copy_and_set_wallpaper(wallpaper_path))
+
+    set_w_bing_icon = tkt.Canvas(canvas_wallpaper_detail, zoom_item=True, keep_ratio="min", free_anchor=True)
+    set_w_bing_icon.place(x=1230, y=670,width=40,height=50,anchor="center")
+    tkt.Text(set_w_bing_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons",anchor="nw")
+    set_w_bing_icon.bind("<Button-1>", lambda event: _set_wallpaper())
+    tkt.Text(canvas_wallpaper_detail,(1230, 705),text="设为壁纸",fontsize=15)
+    ll_icon = tkt.Canvas(canvas_wallpaper_detail, zoom_item=True, keep_ratio="min", free_anchor=True)
+    ll_icon.place(x=1150, y=670,width=40,height=50,anchor="center")
+    tkt.Text(ll_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons",anchor="nw")
+    ll_icon.bind("<Button-1>", lambda event: save_as())
+    tkt.Text(canvas_wallpaper_detail,(1150, 705),text="另存为",fontsize=15)
+    dd_icon = tkt.Canvas(canvas_wallpaper_detail, zoom_item=True, keep_ratio="min", free_anchor=True)
+    dd_icon.place(x=1070, y=670,width=40,height=50,anchor="center")
+    tkt.Text(dd_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons",anchor="nw")
+    dd_icon.bind("<Button-1>", lambda event: download())
+    tkt.Text(canvas_wallpaper_detail,(1070, 705),text="下载",fontsize=15)
+    copy_w_bing_icon = tkt.Canvas(canvas_wallpaper_detail, zoom_item=True, keep_ratio="min", free_anchor=True)
+    copy_w_bing_icon.place(x=990, y=670,width=40,height=50,anchor="center")
+    tkt.Text(copy_w_bing_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons",anchor="nw")
+    copy_w_bing_icon.bind("<Button-1>", lambda event: copy_wallpaper())
+    tkt.Text(canvas_wallpaper_detail,(990, 705),text="复制",fontsize=15)   
     
     # tkt.Text(canvas_wallpaper_detail, (100, 650), text="壁纸来源：", fontsize=30,anchor="nw")
 
@@ -729,9 +827,117 @@ def wallpaper_wallhaven():
     def download_wallpaper():
         ...
     tkt.SegmentedButton(canvas_wallpaper_more_wallhaven, (100, 25),texts= ["随机","每日"], commands=(random_size, wallhaven_1080P), default=0)
-    tkt.Button(canvas_wallpaper_more_wallhaven, (450, 30), text="获取数据", command=lambda: download_wallpaper())    
+    tkt.Button(canvas_wallpaper_more_wallhaven, (450, 30), text="获取数据", command=lambda: download_wallpaper())  
+#### 壁纸面板-聚合源通用下载
+def download_wallpaper():
+    global wallpaper_path
+    global api_url
+    canvas_download.delete("all")
+    canvas_download.place_forget()
+    canvas_download.place(x=1280 // 2, y=205,width=1280,height=395,anchor="n")
+    def long_running_task1():
+        global wallpaper_path
+        try:
+
+            # global bing_data_name
+            url=api_url
+            # print(getBingImg())
+            root.update() 
+            # 自定义用户代理
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
+            }
+
+            # 发送HEAD请求以获取文件大小
+            response = requests.head(url, headers=headers, allow_redirects=True)
+            root.update() 
+            # print(response.headers)
+            logging.info(f"{url} 的文件大小: {response.headers.get('Content-Length')}")
+            file_size = int(response.headers.get('Content-Length', 0))
+            root.update() 
+            guessed_type=mimetypes.guess_extension(response.headers.get('Content-Type'))
+            root.update()
+            if guessed_type:
+                logging.info(f"{url} 的文件格式可能是: {guessed_type}")
+                # print(f"文件格式可能是: {guessed_type}")
+            else:
+                if "webp" in response.headers.get('Content-Type'):
+                    logging.info(f"{url} 的文件格式可能是: .webp")
+                    guessed_type=".webp"
+                    # print(f"文件格式可能是: .webp")
+                elif "html" in response.headers.get('Content-Type'):
+                    logging.info(f"{url} 的文件格式可能是: .html")
+                    guessed_type=".html"
+                else:
+                    logging.warning(f"无法确定 {url} 的文件格式")
+                    # print(f"无法确定 {url} 的文件格式")
+                    tkt.dialogs.TkMessage(message="发生严重错误",detail=f"无法确定 {url} 的文件格式", title="警告", icon="error")
+                    raise Exception("无法确定文件格式")
+            # 自动识别文件名和扩展名
+            filename = f"./temp/{time.strftime('anime_%Y-%m-%d_%H-%M-%S', time.localtime())}{guessed_type}" or 'downloaded_file'
+            wallpaper_path=filename
+            root.update() 
+            root.update() 
+            # 设定分段大小（例如：1MB）
+            chunk_size = 1024 * 200  # 200KB
+            num_chunks = (file_size // chunk_size) + 1
+            logging.info("开始下载")
+            logging.info(f"开始下载 {filename}，总大小: {file_size} bytes，分为 {num_chunks} 段。")
+            root.update()
+            with open(filename, 'wb') as file:
+                root.update()
+                for i in range(num_chunks):
+                    pb1.set(i/num_chunks)
+                    root.update()
+                    start = i * chunk_size
+                    root.update()
+                    end = min(start + chunk_size - 1, file_size - 1)
+
+                    # 设置Range请求头
+                    range_header = {'Range': f'bytes={start}-{end}'}
+                    chunk_response = requests.get(url, headers={**headers, **range_header}, stream=True)
+                    root.update()
+                    if chunk_response.status_code in (200, 206):  # 206表示部分内容
+                        file.write(chunk_response.content)
+                        root.update()
+                        logging.info(f"下载段 {i + 1}/{num_chunks} 完成，大小: {len(chunk_response.content)} bytes")
+                    else:
+                        logging.info(f"下载失败，状态码: {chunk_response.status_code}")
+                        root.update()
+                        tkt.dialogs.TkMessage(f"下载失败，状态码: {chunk_response.status_code}", title="错误", icon="error")
+                        os._exit(0)
+            # print(bing_data_name)
+            
+            logging.info("下载完成！")
+            canvas_download.place_forget()
+            wallpaper_detail()
+        except Exception as e:
+            tkt.dialogs.TkMessage(f"下载失败，详细错误信息请查看日志", title="错误", icon="error")
+            logging.error(f"下载失败{e}")
+            
+            canvas_download.place_forget()
+            wallpaper_detail()
+            
+            # canvas_detail.place(width=1280, height=720, x=640, y=360, anchor="center")
+
+        # 任务完成后更新窗口
+        # label.config(text="任务已完成!")
+
+    def start_task1(*args):
+
+        # label.config(text="任务正在进行中...")
+        # 利用after方法调用长时间运行的任务
+        root.after(1000, long_running_task1)
+    canvas_detail.place_forget()
+    canvas_download.place(width=1280, height=720, x=640, y=360, anchor="center")    
+    tkt.Text(canvas_download, (100, 100), text="正在下载...", fontsize=50, anchor="nw")
+    pb1 = tkt.ProgressBar(canvas_download, (420, 260), (380, 8))
+    # tkt.animation.Animation(2000, tkt.animation.smooth, callback=pb1.set,
+    #                     fps=60, repeat=math.inf).start(delay=1500)
+    start_task1()
 #### 壁纸面板-风景源
 def wallpaper_风景():
+    global api_url
     # global wallpaper_source_name
     # wallpaper_source_name=value
     # canvas_wallpaper_more.delete("all")
@@ -739,9 +945,14 @@ def wallpaper_风景():
     canvas_wallpaper_more_wallhaven.place_forget()
     canvas_wallpaper_more_erciyuan.place_forget()
     canvas_wallpaper_more_fengjing.place(x=1280 // 2, y=205,width=1280,height=395,anchor="n")
-    def download_wallpaper():
-        ...
-    tkt.SegmentedButton(canvas_wallpaper_more_fengjing, (100, 25),texts= ["远方接口","缙哥哥接口"], commands=(), default=0)
+    api_url="https://api.dujin.org/pic/fengjing"
+    def yuanfang():
+        global api_url
+        api_url="https://tu.ltyuanfang.cn/api/fengjing.php"
+    def pugege():
+        global api_url
+        api_url="https://api.dujin.org/pic/fengjing"
+    tkt.SegmentedButton(canvas_wallpaper_more_fengjing, (100, 25),texts= ["缙哥哥接口","远方接口"], commands=(pugege,yuanfang), default=0)
     tkt.Button(canvas_wallpaper_more_fengjing, (450, 30), text="获取数据", command=lambda: download_wallpaper())    
 is_choose=None
 #### 壁纸面板-二次元源
@@ -770,115 +981,44 @@ def wallpaper_二次元():
         def github_io_wallpaper():
             global api_url
             api_url="https://api.paugram.com/wallpaper/?source=github"
-        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["sm.ms-动漫","github.io-动漫"], commands=(sm_ms_wallpaper,github_io_wallpaper), default=0)
+        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["sm.ms-白底动漫","github.io-白底动漫"], commands=(sm_ms_wallpaper,github_io_wallpaper), default=0)
     def ciyuan_wallpaper():
-        global is_choose,canvas_wallpaper_more_erciyuan
+        global is_choose,canvas_wallpaper_more_erciyuan,api_url
+        api_url="https://t.mwm.moe/ysz"
+        def yuanshen_ciyuan():
+            global api_url
+            api_url="https://t.mwm.moe/ysz"
+        def random_ciyuan():
+            global api_url
+            api_url="https://t.mwm.moe/pc"
+        def ai_ciyuan():
+            global api_url
+            api_url="https://t.mwm.moe/ai"
+        def fengjing_ciyuan():
+            global api_url
+            api_url="https://t.mwm.moe/fj"
+        def xiaohuang_ciyuan():
+            global api_url
+            api_url="https://t.mwm.moe/xhl"
+        def mengtu_ciyuan():
+            global api_url
+            api_url="https://t.mwm.moe/moe"
         if is_choose!=None:
             is_choose.destroy()
-        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["原神","随机","AI生成","风景","小狐狸","萌图"], commands=(), default=0)
+        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["原神","随机","AI生成","风景","小狐狸","萌图"], commands=(yuanshen_ciyuan,random_ciyuan,ai_ciyuan,fengjing_ciyuan,xiaohuang_ciyuan,mengtu_ciyuan), default=0)
     def other_wallpaper():
-        global is_choose,canvas_wallpaper_more_erciyuan
+        global is_choose,canvas_wallpaper_more_erciyuan,api_url
+        api_url="https://api.imlcd.cn/bg/acg.php"
+        def yiyun_random():
+            global api_url
+            api_url="https://api.imlcd.cn/bg/acg.php"
+        def paulzzh_dongfang():
+            global api_url
+            api_url="https://img.paulzzh.com/touhou/random"
         if is_choose!=None:
             is_choose.destroy()
-        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["[樱花]随机","[PAULZZH]东方"], commands=(), default=0)
-    def download_wallpaper():
-        global wallpaper_path
-        global api_url
-        canvas_download.delete("all")
-        canvas_download.place_forget()
-        canvas_download.place(x=1280 // 2, y=205,width=1280,height=395,anchor="n")
-        def long_running_task1():
-            global wallpaper_path
-            try:
+        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["[忆云]随机","[PAULZZH]东方"], commands=(yiyun_random,paulzzh_dongfang), default=0)
 
-                # global bing_data_name
-                url=api_url
-                # print(getBingImg())
-                root.update() 
-                # 自定义用户代理
-                headers = {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
-                }
-
-                # 发送HEAD请求以获取文件大小
-                response = requests.head(url, headers=headers, allow_redirects=True)
-                root.update() 
-                file_size = int(response.headers.get('Content-Length', 0))
-                root.update() 
-                guessed_type=mimetypes.guess_extension(response.headers.get('Content-Type'))
-                root.update()
-                if guessed_type:
-                    logging.info(f"{url} 的文件格式可能是: {guessed_type}")
-                    # print(f"文件格式可能是: {guessed_type}")
-                else:
-                    if "webp" in response.headers.get('Content-Type'):
-                        logging.info(f"{url} 的文件格式可能是: .webp")
-                        guessed_type=".webp"
-                        # print(f"文件格式可能是: .webp")
-                    else:
-                        logging.warning(f"无法确定 {url} 的文件格式")
-                        # print(f"无法确定 {url} 的文件格式")
-                        tkt.dialogs.TkMessage(message="发生严重错误",detail=f"无法确定 {url} 的文件格式", title="警告", icon="error")
-                        raise Exception("无法确定文件格式")
-                # 自动识别文件名和扩展名
-                filename = f"./temp/{time.strftime('anime_%Y-%m-%d_%H-%M-%S', time.localtime())}{guessed_type}" or 'downloaded_file'
-                wallpaper_path=filename
-                root.update() 
-                root.update() 
-                # 设定分段大小（例如：1MB）
-                chunk_size = 1024 * 1024  # 1MB
-                num_chunks = (file_size // chunk_size) + 1
-                logging.info("开始下载")
-                logging.info(f"开始下载 {filename}，总大小: {file_size} bytes，分为 {num_chunks} 段。")
-
-                with open(filename, 'wb') as file:
-                    for i in range(num_chunks):
-                        root.update()
-                        start = i * chunk_size
-                        end = min(start + chunk_size - 1, file_size - 1)
-
-                        # 设置Range请求头
-                        range_header = {'Range': f'bytes={start}-{end}'}
-                        chunk_response = requests.get(url, headers={**headers, **range_header}, stream=True)
-                        root.update()
-                        if chunk_response.status_code in (200, 206):  # 206表示部分内容
-                            file.write(chunk_response.content)
-                            root.update()
-                            logging.info(f"下载段 {i + 1}/{num_chunks} 完成，大小: {len(chunk_response.content)} bytes")
-                        else:
-                            logging.info(f"下载失败，状态码: {chunk_response.status_code}")
-                            root.update()
-                            tkt.dialogs.TkMessage(f"下载失败，状态码: {chunk_response.status_code}", title="错误", icon="error")
-                            os._exit(0)
-                # print(bing_data_name)
-                
-                logging.info("下载完成！")
-                canvas_download.place_forget()
-                wallpaper_detail()
-            except Exception as e:
-                tkt.dialogs.TkMessage(f"下载失败，详细错误信息请查看日志", title="错误", icon="error")
-                logging.error(f"下载失败{e}")
-                
-                canvas_download.place_forget()
-                wallpaper_detail()
-                
-                # canvas_detail.place(width=1280, height=720, x=640, y=360, anchor="center")
-
-            # 任务完成后更新窗口
-            # label.config(text="任务已完成!")
-
-        def start_task1(*args):
-
-            # label.config(text="任务正在进行中...")
-            # 利用after方法调用长时间运行的任务
-            root.after(100, long_running_task1)
-        canvas_detail.place_forget()
-        canvas_download.place(width=1280, height=720, x=640, y=360, anchor="center")    
-        tkt.Text(canvas_download, (100, 100), text="正在下载...", fontsize=50, anchor="nw")
-        pb1 = tkt.ProgressBar(canvas_download, (420, 260), (380, 8))
-        tkt.animation.Animation(2000, tkt.animation.smooth, callback=pb1.set,
-                            fps=60, repeat=math.inf).start(delay=1500)
-        start_task1()
 
 
         # print(bing_data)
