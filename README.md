@@ -18,6 +18,12 @@ The version number naming rule used by this program: [Semantic Versioning 2.0.0]
 
 本程序版本号使用命名使用规则：[语义化版本 2.0.0](https://semver.org/lang/zh-CN/)
 
+## Special Thanks / 特别感谢
+
+Special thanks to the author [Xiaokang2022](https://github.com/Xiaokang2022) of the project [tkintertools](https://github.com/Xiaokang2022/tkintertools) for technical support to this project!
+
+特别感谢项目 [tkintertools](https://github.com/Xiaokang2022/tkintertools) 的作者 [Xiaokang2022](https://github.com/Xiaokang2022) 对本项目的技术支持！
+
 ## Star History / Star 趋势
 
 [![Star History Chart](https://api.star-history.com/svg?repos=shu-shu-1/BingWallpaper&type=Date)](https://star-history.com/#shu-shu-1/BingWallpaper&Date)
