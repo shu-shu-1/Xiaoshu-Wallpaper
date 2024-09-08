@@ -64,12 +64,12 @@ new_folder("C:/xiaoshu_wallpaper")
 new_folder("temp")
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 LOG_FILE = f'./logs/logs_{time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())}.log'
-logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG, format=LOG_FORMAT,encoding='utf-8')
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format=LOG_FORMAT,encoding='utf-8')
 logging.info("------程序启动------")
 logging.info("日志加载成功")
 # logging.error("hello")
-VER = "v6.0.0-alpha.1"
-software_VER="6.0.0.a.1"
+VER = "v6.0.0-beta.2"
+software_VER="6.0.0.b.2"
 root=tkt.Tk(title=f"小树壁纸{VER}")
 logging.info("初始化窗口成功")
 root.center()
@@ -410,7 +410,7 @@ canvas_loading = tkt.Canvas(root, zoom_item=True, keep_ratio="min", free_anchor=
 # canvas_loading.place(width=1280, height=720, x=640, y=360, anchor="center")
 # progress = tkt.Progressbar(root, orient="horizontal", length=300, mode="determinate")
 
-### ✨ 更新检查
+### ✨ 更新
 canvas_index = tkt.Canvas(root, zoom_item=True, keep_ratio="min", free_anchor=True)
 canvas_update = tkt.Canvas(root, zoom_item=True, keep_ratio="min", free_anchor=True)
 def update_window():
@@ -433,8 +433,8 @@ def update_window():
         canvas_pass.bind("<Button-1>", lambda event: go_pass_update())
         # pass_update=canvas_update.create_text(1200,700,text="忽略(不推荐)",font=18)
         # canvas_update.tag_bind(pass_update, "<Button-1>", lambda event: go_pass_update())
-        aaa=tkt.Button(canvas_update, [750,550],text="前往官网手动更新", size=[220,100], command=lambda: webbrowser.open("https://shu-shu-1.github.io/wallpaper.html"))
-        bbb=tkt.Button(canvas_update, [1020,550],text="立即更新(推荐)", size=[220,100], command=lambda: webbrowser.open("https://shu-shu-1.github.io/wallpaper.html")).disabled()
+        aaa=tkt.Button(canvas_update, [750,550],text="前往官网手动更新", size=[220,100], command=lambda: webbrowser.open("https://shu-shu-1.github.io/wallpaper/"))
+        bbb=tkt.Button(canvas_update, [1020,550],text="立即更新(推荐)", size=[220,100], command=lambda: webbrowser.open("https://shu-shu-1.github.io/wallpaper/")).disabled()
 def check_for_update(ty : str):
     # return False
     if ty == "release" or ty == "beta":
@@ -572,7 +572,7 @@ tkt.Text(canvas_setting,[1280//2, 720//2-100],text="施工中，请等待后续�
 # img1 = img1.resize((base_width1, h_size1), Image.Resampling.LANCZOS)
 # tkt.Image(canvas_setting,[1280//2, 720//2+50],image=tkt.PhotoImage(img1))
 
-    
+true_del = False
 def clear_folder(folder_path, exclude_list=[]):
     """
     清空指定文件夹中的所有文件和子文件夹，但排除指定的文件或文件夹
@@ -581,49 +581,70 @@ def clear_folder(folder_path, exclude_list=[]):
     folder_path (str): 要清空的文件夹路径
     exclude_list (list): 要排除的文件或文件夹名称列表
     """
+    logging.info(f"准备清空文件夹: {folder_path}")
+    logging.info(f"排除列表: {exclude_list}")
 
     try:
         for filename in os.listdir(folder_path):
             if filename in exclude_list:
+                logging.info(f"跳过排除的文件或文件夹: {filename}")
                 continue  # 跳过排除的文件或文件夹
             file_path = os.path.join(folder_path, filename)
             try:
                 if os.path.isfile(file_path) or os.path.islink(file_path):
+                    logging.info(f"删除文件或链接: {file_path}")
                     os.unlink(file_path)
                 elif os.path.isdir(file_path):
+                    logging.info(f"删除子文件夹: {file_path}")
                     shutil.rmtree(file_path)
             except Exception as e:
-                logging.warning(f'Failed to delete {file_path}. Reason: {e}')
+                logging.warning(f"无法删除 {file_path}。原因: {e}")
+        logging.info(f"文件夹 {folder_path} 清理完成")
     except Exception as e:
-        logging.warning(f'Failed to delete files in {folder_path}. Reason: {e}')
-    tkt.dialogs.TkMessage(icon="info",title="完成",message="缓存清理完成！")
-    
-true_del=False
+        logging.warning(f"无法清理文件夹 {folder_path}。原因: {e}")
+    tkt.dialogs.TkMessage(icon="info", title="完成", message="缓存清理完成！")
+
 def return_choice(result):
     global true_del
-    if result=="yes":
-        true_del=True
+    logging.info(f"用户选择: {result}")
+    if result == "yes":
+        true_del = True
+        logging.info("用户确认清空文件夹")
     else:
-        true_del=False
+        true_del = False
+        logging.info("用户取消清空文件夹")
+
 def del_temp_folder():
-    tkt.dialogs.TkMessage(icon="question", title="警告", message=f"你确定要清空 缓存 文件夹吗？", detail="此操作不可恢复！", type="yesno", default="no", command=lambda result: return_choice(result))
+    logging.info("请求用户确认清空缓存文件夹")
+    tkt.dialogs.TkMessage(
+        icon="question", title="警告",
+        message="你确定要清空 缓存 文件夹吗？",
+        detail="此操作不可恢复！", type="yesno",
+        default="no", command=lambda result: return_choice(result)
+    )
     if true_del:
         logging.info("开始清空缓存文件夹")
         del_temp.disabled()
         clear_folder("temp", exclude_list=[os.path.basename(fn)])
         del_temp.disabled(False)
     else:
-        return
+        logging.info("清空缓存文件夹操作已取消")
 
 def del_log_folder():
-    tkt.dialogs.TkMessage(icon="warning", title="警告", message=f"你确定要清空 日志 文件夹吗？\n你需要知道你正在做什么! \n日志文件对于查找错误非常重要", detail="这是一个危险行为，请谨慎操作！", type="yesno", default="no", command=lambda result: return_choice(result))
+    logging.info("请求用户确认清空日志文件夹")
+    tkt.dialogs.TkMessage(
+        icon="warning", title="警告",
+        message="你确定要清空 日志 文件夹吗？\n你需要知道你正在做什么! \n日志文件对于查找错误非常重要",
+        detail="这是一个危险行为，请谨慎操作！", type="yesno",
+        default="no", command=lambda result: return_choice(result)
+    )
     if true_del:
         logging.info("开始清空日志文件夹")
         del_log.disabled()
         clear_folder("logs", exclude_list=[os.path.basename(LOG_FILE)])
         del_log.disabled(False)
     else:
-        return
+        logging.info("清空日志文件夹操作已取消")
 del_temp=tkt.Button(canvas_setting, (1280//2-150, 720//2), text="清空缓存", command=lambda: del_temp_folder())
 
 del_log=tkt.Button(canvas_setting, (1280//2+150, 720//2), text="清空日志", command=lambda: del_log_folder())
@@ -830,110 +851,123 @@ def wallpaper_wallhaven():
     tkt.Button(canvas_wallpaper_more_wallhaven, (450, 30), text="获取数据", command=lambda: download_wallpaper())  
 #### 壁纸面板-聚合源通用下载
 def download_wallpaper():
+    logging.info("--开始下载壁纸--")
     global wallpaper_path
     global api_url
     canvas_download.delete("all")
     canvas_download.place_forget()
-    canvas_download.place(x=1280 // 2, y=205,width=1280,height=395,anchor="n")
+    canvas_download.place(x=1280 // 2, y=205, width=1280, height=395, anchor="n")
+
     def long_running_task1():
         global wallpaper_path
         try:
+            url = api_url
+            root.update()
 
-            # global bing_data_name
-            url=api_url
-            # print(getBingImg())
-            root.update() 
-            # 自定义用户代理
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
             }
 
-            # 发送HEAD请求以获取文件大小
+            logging.info("发送HEAD请求以获取文件大小和类型")
             response = requests.head(url, headers=headers, allow_redirects=True)
-            root.update() 
-            # print(response.headers)
-            logging.info(f"{url} 的文件大小: {response.headers.get('Content-Length')}")
-            file_size = int(response.headers.get('Content-Length', 0))
-            root.update() 
-            guessed_type=mimetypes.guess_extension(response.headers.get('Content-Type'))
             root.update()
-            if guessed_type:
-                logging.info(f"{url} 的文件格式可能是: {guessed_type}")
-                # print(f"文件格式可能是: {guessed_type}")
-            else:
-                if "webp" in response.headers.get('Content-Type'):
-                    logging.info(f"{url} 的文件格式可能是: .webp")
-                    guessed_type=".webp"
-                    # print(f"文件格式可能是: .webp")
-                elif "html" in response.headers.get('Content-Type'):
-                    logging.info(f"{url} 的文件格式可能是: .html")
-                    guessed_type=".html"
-                else:
-                    logging.warning(f"无法确定 {url} 的文件格式")
-                    # print(f"无法确定 {url} 的文件格式")
-                    tkt.dialogs.TkMessage(message="发生严重错误",detail=f"无法确定 {url} 的文件格式", title="警告", icon="error")
-                    raise Exception("无法确定文件格式")
-            # 自动识别文件名和扩展名
-            filename = f"./temp/{time.strftime('anime_%Y-%m-%d_%H-%M-%S', time.localtime())}{guessed_type}" or 'downloaded_file'
-            wallpaper_path=filename
-            root.update() 
-            root.update() 
-            # 设定分段大小（例如：1MB）
-            chunk_size = 1024 * 200  # 200KB
-            num_chunks = (file_size // chunk_size) + 1
-            logging.info("开始下载")
-            logging.info(f"开始下载 {filename}，总大小: {file_size} bytes，分为 {num_chunks} 段。")
-            root.update()
-            with open(filename, 'wb') as file:
-                root.update()
-                for i in range(num_chunks):
-                    pb1.set(i/num_chunks)
-                    root.update()
-                    start = i * chunk_size
-                    root.update()
-                    end = min(start + chunk_size - 1, file_size - 1)
 
-                    # 设置Range请求头
-                    range_header = {'Range': f'bytes={start}-{end}'}
-                    chunk_response = requests.get(url, headers={**headers, **range_header}, stream=True)
-                    root.update()
-                    if chunk_response.status_code in (200, 206):  # 206表示部分内容
-                        file.write(chunk_response.content)
-                        root.update()
-                        logging.info(f"下载段 {i + 1}/{num_chunks} 完成，大小: {len(chunk_response.content)} bytes")
+            logging.info(f"HEAD请求返回状态码: {response.status_code}")
+            if response.status_code != 200:
+                raise Exception(f"HEAD请求失败，状态码: {response.status_code}")
+
+            file_size = int(response.headers.get('Content-Length', 0))
+            logging.info(f"文件大小: {file_size} bytes")
+
+            guessed_type = mimetypes.guess_extension(response.headers.get('Content-Type'))
+            root.update()
+            if not guessed_type:
+                if "webp" in response.headers.get('Content-Type'):
+                    guessed_type = ".webp"
+                elif "html" in response.headers.get('Content-Type'):
+                    guessed_type = ".html"
+                else:
+                    logging.error(f"无法确定文件格式: {response.headers.get('Content-Type')}")
+                    tkt.dialogs.TkMessage(message="发生严重错误", detail=f"无法确定 {url} 的文件格式", title="警告", icon="error")
+                    raise Exception("无法确定文件格式")
+
+            filename = f"./temp/{time.strftime('anime_%Y-%m-%d_%H-%M-%S', time.localtime())}{guessed_type}" or 'downloaded_file'
+            wallpaper_path = filename
+            root.update()
+
+            logging.info(f"开始下载 {filename}")
+
+            def download_file(url, filename, file_size):
+                logging.info(f"开始下载 {url} 到 {filename}")
+                with open(filename, 'wb') as file:
+                    response = requests.get(url, headers=headers, stream=True)
+                    if response.status_code == 200:
+                        logging.info("HTTP 200 OK，开始下载文件内容")
+                        if response.headers.get('Transfer-Encoding') == 'chunked':
+                            logging.info("启用chunked传输编码")
+                            for chunk in response.iter_content(1024):
+                                if chunk:
+                                    file.write(chunk)
+                                    root.update()
+                            logging.info(f"下载完成，文件大小: {file_size} bytes")
+                        else:
+                            logging.info("未启用chunked传输编码，分块下载")
+                            pb1 = tkt.ProgressBar(canvas_download, (420, 260), (380, 8))
+                            chunk_size = 1024 * 200
+                            num_chunks = (file_size // chunk_size) + 1
+                            for i in range(num_chunks):
+                                pb1.set(i / num_chunks)
+                                root.update()
+                                start = i * chunk_size
+                                end = min(start + chunk_size - 1, file_size - 1)
+                                range_header = {'Range': f'bytes={start}-{end}'}
+                                chunk_response = requests.get(url, headers={**headers, **range_header}, stream=True)
+                                if chunk_response.status_code in (200, 206):
+                                    file.write(chunk_response.content)
+                                    root.update()
+                                    logging.info(f"下载段 {i + 1}/{num_chunks} 完成，大小: {len(chunk_response.content)} bytes")
+                                else:
+                                    logging.error(f"下载失败，状态码: {chunk_response.status_code}")
+                                    wallpaper_path = "./assets/images/no_images.jpg"
+                                    root.update()
+                                    tkt.dialogs.TkMessage(f"下载失败，状态码: {chunk_response.status_code}", title="错误", icon="error")
+                                    break
                     else:
-                        logging.info(f"下载失败，状态码: {chunk_response.status_code}")
-                        root.update()
-                        tkt.dialogs.TkMessage(f"下载失败，状态码: {chunk_response.status_code}", title="错误", icon="error")
-                        os._exit(0)
-            # print(bing_data_name)
-            
+                        logging.error(f"下载失败，状态码: {response.status_code}")
+                        wallpaper_path = "./assets/images/no_images.jpg"
+                        tkt.dialogs.TkMessage(f"下载失败，状态码: {response.status_code}", title="错误", icon="error")
+
+            def verify_file_integrity(filename, expected_size):
+                if not os.path.exists(filename):
+                    return False
+                actual_size = os.path.getsize(filename)
+                if actual_size != expected_size:
+                    logging.error(f"文件大小不匹配，预期: {expected_size} bytes，实际: {actual_size} bytes")
+                    return False
+                return True
+
+            download_file(url, filename, file_size)
+
+            if not verify_file_integrity(filename, file_size):
+                logging.info("文件完整性校验失败，尝试重新下载")
+                download_file(url, filename, file_size)
+
             logging.info("下载完成！")
             canvas_download.place_forget()
             wallpaper_detail()
         except Exception as e:
             tkt.dialogs.TkMessage(f"下载失败，详细错误信息请查看日志", title="错误", icon="error")
-            logging.error(f"下载失败{e}")
-            
+            logging.error(f"下载失败: {e}")
             canvas_download.place_forget()
             wallpaper_detail()
-            
-            # canvas_detail.place(width=1280, height=720, x=640, y=360, anchor="center")
-
-        # 任务完成后更新窗口
-        # label.config(text="任务已完成!")
 
     def start_task1(*args):
-
-        # label.config(text="任务正在进行中...")
-        # 利用after方法调用长时间运行的任务
         root.after(1000, long_running_task1)
+
     canvas_detail.place_forget()
-    canvas_download.place(width=1280, height=720, x=640, y=360, anchor="center")    
+    canvas_download.place(width=1280, height=720, x=640, y=360, anchor="center")
     tkt.Text(canvas_download, (100, 100), text="正在下载...", fontsize=50, anchor="nw")
     pb1 = tkt.ProgressBar(canvas_download, (420, 260), (380, 8))
-    # tkt.animation.Animation(2000, tkt.animation.smooth, callback=pb1.set,
-    #                     fps=60, repeat=math.inf).start(delay=1500)
     start_task1()
 #### 壁纸面板-风景源
 def wallpaper_风景():
