@@ -1,6 +1,8 @@
 ### ✨ 导入模块
 import ctypes
+import datetime
 import mimetypes
+import random
 import subprocess
 import threading
 import win32api
@@ -71,8 +73,8 @@ logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format=LOG_FORMAT,enc
 logging.info("------程序启动------")
 logging.info("日志加载成功")
 # logging.error("hello")
-VER = "v6.0.0-beta.3"
-software_VER="6.0.0.b.3"
+VER = "v6.0.0-beta.4"
+software_VER="6.0.0.b.4"
 root=tkt.Tk(title=f"小树壁纸{VER}")
 
 logging.info("初始化窗口成功")
@@ -107,7 +109,7 @@ tkt.constants.SIZE = -24
 ORIGIN_SYSTEM = tkt.constants.SYSTEM
 APPDATA = os.path.expandvars("%APPDATA%")
 TEMP = os.path.expandvars("%TEMP%")
-tkt.style.set_color_mode("light")
+# tkt.style.set_color_mode("light")
 tkt.style.customize_window(
     root,
     # style="acrylic",
@@ -115,7 +117,7 @@ tkt.style.customize_window(
     hide_button="maxmin",
     # boarder_type="smallround",
 )
-tkt.style.set_theme_map(light=粉雕玉琢)
+# tkt.style.set_theme_map(light=粉雕玉琢)
 
 # tkt.style.set_color_mode("dark")
 
@@ -166,6 +168,9 @@ def get_input():
                 case "清明祭扫":
                     tkt.style.set_theme_map(light=清明祭扫)
                     tkt.style.set_color_mode("light")
+                case "黄昏蓝调":
+                    tkt.style.set_theme_map(light=黄昏蓝调)
+                    tkt.style.set_color_mode("light")
                 case "list":
                     print("可选主题：")
                     print("light dark acrylic 原木秋色 粉雕玉琢 粉花春色 中秋月下 欢庆春节 清明祭扫")
@@ -180,7 +185,19 @@ input_thread.start()
 
 
 ### ✨ 功能性函数
-
+def get_file_count(folder_path):
+    file_count = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        file_count += len(filenames)
+    return file_count
+def get_folder_size(folder_path):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for filename in filenames:
+            file_path = os.path.join(dirpath, filename)
+            if os.path.isfile(file_path):
+                total_size += os.path.getsize(file_path)
+    return total_size / (1024 * 1024) 
 def run_installer(installer_path):
     if sys.platform == 'win32':
         installer_path = installer_path
@@ -328,10 +345,11 @@ df_settings = {
         "segmented_download_size": 200,
         "icon" : "./assets/icon/icon1.ico",
         "use_proxy" : 1,
-        "proxy_url": "ghproxy.cn",
+        "proxy_url": "https://www.ghproxy.cn/",
         "clear_cache_when_360_back": 1,
         "use_proxy_for_wallpaper": 0,
         "proxy_for_wallpaper": {},
+        "home_page_image": "bing",
 }
 proxy_list = {
     "ghproxy.cn":"https://www.ghproxy.cn/",
@@ -418,7 +436,7 @@ if cog["download_path"] == "":
     save_cog()
 else:
     Download_Path = cog["download_path"]
-cog["proxy_url"] = proxy_list[cog["proxy_url"]]
+# cog["proxy_url"] = proxy_list[cog["proxy_url"]]
 
 ### ✨ 应用个性化
 
@@ -437,13 +455,25 @@ def bing_index_loading():
     tkt.Text(canvas_loading,(120,50),text="正在加载数据...",fontsize=40,anchor="nw")
     start_task()
 def task():
-    global fn,b_title,b_copyright,bing_data,pb1
+    global fn,b_title,b_copyright,pb1,image_type,index_detail
     try:
         # global bing_data_name
-        bing_data=getBingImg()
-        url=bing_data[0]['url']
+        if cog["home_page_image"] == "bing":
+            bing_data=getBingImg()
+            image_type="Bing"
+            url=bing_data[0]['url']
+            b_title=bing_data[0]['title']
+            b_copyright=bing_data[0]['copyright']
+            index_detail=bing_data[0]
+        else:
+            spotlight_data=random.choice(getSpotlightImg())
+            image_type="Windows 聚焦"
+            url=spotlight_data['url']
+            b_title=spotlight_data['title']
+            b_copyright=spotlight_data['copyright']
+            index_detail=spotlight_data
         # print(getBingImg())
-        root.update() 
+        root.update_idletasks() 
         # 自定义用户代理
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
@@ -468,14 +498,14 @@ def task():
             for i in range(num_chunks):
                 pb1.set(i/num_chunks)
                 logging.info(f"下载进度更新 {i/num_chunks*100:.2f}%")
-                root.update()
+                root.update_idletasks()
                 start = i * chunk_size
                 end = min(start + chunk_size - 1, file_size - 1)
 
                 # 设置Range请求头
                 range_header = {'Range': f'bytes={start}-{end}'}
                 chunk_response = requests.get(url, headers={**headers, **range_header}, stream=True)
-                root.update()
+                root.update_idletasks()
                 if chunk_response.status_code in (200, 206):  # 206表示部分内容
                     file.write(chunk_response.content)
                     logging.info(f"下载段 {i + 1}/{num_chunks} 完成，大小: {len(chunk_response.content)} bytes")
@@ -485,8 +515,7 @@ def task():
                     os._exit(0)
         # print(bing_data_name)
         fn=filename
-        b_title=bing_data[0]['title']
-        b_copyright=bing_data[0]['copyright']
+
         logging.info("资源加载完成！")
         main()
     except Exception as e:
@@ -519,7 +548,7 @@ def download_update(update_file_url:str):
         global wallpaper_path
         try:
             url = update_file_url
-            root.update()
+            root.update_idletasks()
 
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
@@ -758,7 +787,7 @@ def index_window(*args):
         cropped_image_cache = load_and_crop_image(fn)
     
     tkt.Image(canvas_index, [640, 320], image=tkt.PhotoImage(cropped_image_cache),anchor="center")
-    tkt.Text(canvas_index, (640, 100), text=f"今日Bing\n{b_title}\n{b_copyright}", fontsize=20, anchor="n", justify='center')
+    tkt.Text(canvas_index, (640, 100), text=f"今日{image_type}\n{b_title}\n{b_copyright}", fontsize=20, anchor="n", justify='center')
 
     tkt.Text(canvas_index, (640, 440), text=f"详细信息", fontsize=15, anchor="n", justify='center')
 
@@ -781,17 +810,262 @@ def index_window(*args):
 
 ### ✨ 设置面板
 canvas_setting = tkt.Canvas(root, zoom_item=True, keep_ratio="min", free_anchor=True)
+canvas_setting_pages = tkt.Canvas(canvas_setting, zoom_item=True, keep_ratio="min", free_anchor=True)
+canvas_setting_pages.place(x=170, y=140, width=1000, height=500, anchor="nw")
+#创建一个覆盖canvas_setting_pages的形状，方便观察
+tkt.Text(canvas_setting_pages, (500, 100), text="从左侧选择一个项目以开始", fontsize=25, anchor="n")
+
+# tkt.Text(canvas_setting_pages, (10, 10), text="主题", fontsize=25, anchor="nw")
 # canvas_setting.place(width=1280, height=720, x=640, y=360, anchor="center")
-tkt.Switch(canvas_setting, (20, 25), command=lambda b: tkt.style.set_color_mode(
-"dark" if b else "light"), default=tkt.style.SYSTEM_DARK_MODE)
+# tkt.Switch(canvas_setting, (20, 25), command=lambda b: tkt.style.set_color_mode(
+# "dark" if b else "light"), default=tkt.style.SYSTEM_DARK_MODE)
 back_canvas1 = tkt.Canvas(canvas_setting, zoom_item=True, keep_ratio="min", free_anchor=True)
 # back_canvas1.place(x=50, y=670,width=40,height=40,anchor="center")
 back_canvas1.place(x=50, y=670,width=40,height=40,anchor="center")
 tkt.Text(back_canvas1, (0, 0), text="", fontsize=40, family="Segoe Fluent lcons",anchor="nw")
 back_canvas1.bind("<Button-1>", lambda event: main())
 tkt.Text(canvas_setting, (100, 50), text="设置", fontsize=50)
-tkt.Text(canvas_setting,[1280//2, 720//2-100],text="施工中，请等待后续测试版本〜",fontsize=50, anchor="center")
-tkt.SegmentedButton(canvas_setting, [80, 200], texts=["主题", "数据", "关于", "退出"], layout="vertical")
+# tkt.Text(canvas_setting,[1280//2, 720//2-100],text="施工中，请等待后续测试版本〜",fontsize=50, anchor="center")
+changed_light_theme=False
+changed_dark_theme=False
+changed_font=False
+dark_theme_map="default"
+now_font="霞鹜文楷"
+def change_setting_page(page):
+    global canvas_setting_pages
+    global del_log,del_temp
+    match page:
+        case 0:
+            canvas_setting_pages.delete("all")
+            canvas_setting_pages.destroy()
+            canvas_setting_pages = tkt.Canvas(canvas_setting, zoom_item=True, keep_ratio="min", free_anchor=True)
+            canvas_setting_pages.place(x=170, y=140, width=1000, height=500, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 10), text="外观", fontsize=30, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 70), text="深/浅色模式切换", fontsize=20, anchor="nw")
+            def change_color_mode(b):
+                global changed_dark_theme
+                changed_dark_theme=False
+                tkt.style.set_color_mode("dark" if b else "light")
+            coloe_mode_switch = tkt.Switch(canvas_setting_pages, (20, 105), command=change_color_mode, default=tkt.style.SYSTEM_DARK_MODE)
+            if tkt.style.get_color_mode() == "dark":
+                coloe_mode_switch.set(True)
+            else:
+                coloe_mode_switch.set(False)
+            tkt.Text(canvas_setting_pages, (10, 140), text="自定义浅色主题", fontsize=20, anchor="nw")
+            def change_light_theme(index):
+                global changed_light_theme,changed_dark_theme
+                changed_light_theme=True
+                changed_dark_theme=False
+                match index:
+                    case 6:
+                        tkt.style.set_theme_map(light=粉雕玉琢)
+                        tkt.style.set_color_mode("light")
+                        coloe_mode_switch.set(False)
+                    case 5:
+                        tkt.style.set_theme_map(light=原木秋色)
+                        tkt.style.set_color_mode("light")
+                        coloe_mode_switch.set(False)
+                    case 0:
+                        tkt.style.set_theme_map(light=国行公祭)
+                        tkt.style.set_color_mode("light")
+                        coloe_mode_switch.set(False)
+                    case 4:
+                        tkt.style.set_theme_map(light=粉花春色)
+                        tkt.style.set_color_mode("light")
+                        coloe_mode_switch.set(False)
+                    case 3:
+                        tkt.style.set_theme_map(light=中秋月下)
+                        tkt.style.set_color_mode("light")
+                        coloe_mode_switch.set(False)
+                    case 1:
+                        tkt.style.set_theme_map(light=欢庆春节)
+                        tkt.style.set_color_mode("light")
+                        coloe_mode_switch.set(False)
+                    case 2:
+                        tkt.style.set_theme_map(light=清明祭扫)
+                        tkt.style.set_color_mode("light")
+                        coloe_mode_switch.set(False)
+                    case 7:
+                        tkt.style.set_theme_map(light=黄昏蓝调)
+                        tkt.style.set_color_mode("light")
+                        coloe_mode_switch.set(False)
+
+            light_mode_choose=tkt.SegmentedButton(canvas_setting_pages, [20, 170], texts=["国行公祭","欢庆春节","清明祭扫","中秋月下","粉花春色","原木秋色","粉雕玉琢","黄昏蓝调"], layout="horizontal", command=change_light_theme)
+            if changed_light_theme:
+                
+                light_mode_choose.set(["国行公祭","欢庆春节","清明祭扫","中秋月下","粉花春色","原木秋色","粉雕玉琢","黄昏蓝调"].index(tkt.style.get_theme_map()["light"].__name__))
+            def reset_theme_map():
+                global changed_dark_theme,changed_light_theme
+                nonlocal light_mode_choose,dark_theme_choose
+                tkt.style.reset_theme_map()
+                changed_dark_theme=False
+                changed_light_theme=False
+                tkt.style.set_color_mode("dark" if tkt.style.SYSTEM_DARK_MODE else "light")
+                tkt.style.set_color_mode("dark" if tkt.style.SYSTEM_DARK_MODE else "light")
+                tkt.style.set_color_mode("dark" if tkt.style.SYSTEM_DARK_MODE else "light")
+                coloe_mode_switch.set(tkt.style.SYSTEM_DARK_MODE)
+                light_mode_choose.destroy()
+                dark_theme_choose.destroy()
+                light_mode_choose=tkt.SegmentedButton(canvas_setting_pages, [20, 170], texts=["国行公祭","欢庆春节","清明祭扫","中秋月下","粉花春色","原木秋色","粉雕玉琢","黄昏蓝调"], layout="horizontal", command=change_light_theme)
+                dark_theme_choose=tkt.SegmentedButton(canvas_setting_pages, (20, 290), texts=["Acrylic", "Native"], layout="horizontal",command=change_dark_theme)
+            tkt.Button(canvas_setting_pages, (20, 230), text="重置主题", command=lambda: reset_theme_map(),size=(1000,30))
+
+            tkt.Text(canvas_setting_pages, (10, 260), text="自定义特殊效果模式(仅深色模式)  - 实验性功能", fontsize=20, anchor="nw")
+            
+            def change_dark_theme(index):
+                global changed_dark_theme,dark_theme_map
+                tkt.dialogs.TkMessage(icon="warning", title="小树壁纸-警告", message="此功能为实验性功能，可能存在一些问题，请谨慎使用！")
+                changed_dark_theme=True
+                match index:
+                    case 0:
+                        coloe_mode_switch.set(True)
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.set_color_mode("light")
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.customize_window(
+                        root,
+                        style="acrylic",
+                        # hide_title_bar=True,
+                        hide_button="maxmin",
+                        # boarder_type="smallround",
+                        )
+                        tkt.style.set_color_mode("dark")
+                        
+                        dark_theme_map="acrylic"
+                    case 1:
+                        coloe_mode_switch.set(True)
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.set_color_mode("light")
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.customize_window(
+                        root,
+                        style="native",
+                        # hide_title_bar=True,
+                        hide_button="maxmin",
+                        # boarder_type="smallround",
+                        )
+                        tkt.style.set_color_mode("dark")
+                        
+                        dark_theme_map="native"
+            dark_theme_choose=tkt.SegmentedButton(canvas_setting_pages, (20, 290), texts=["Acrylic", "Native"], layout="horizontal",command=change_dark_theme)
+            if changed_dark_theme:
+                match dark_theme_map:
+                    case "acrylic":
+                        dark_theme_choose.set(0)
+                    case "native":
+                        dark_theme_choose.set(1)    
+            tkt.Text(canvas_setting_pages, (10, 350), text="自定义字体 - 实验性功能", fontsize=20, anchor="nw")
+            def change_font(index):
+                global changed_font,now_font
+                nonlocal choose_font
+                changed_font=True
+                match index:
+                    case 0:
+                        tkt.constants.FONT = "霞鹜文楷"
+                        root.update()
+                        root.update_idletasks()
+                        canvas_setting_pages.update()
+                        canvas_setting_pages.update_idletasks()
+                        changed_font=False
+                    case 1:
+                        tkt.dialogs.TkMessage(icon="warning", title="小树壁纸-警告", message="此功能为实验性功能，可能存在一些问题，请谨慎使用！")
+                        def extract_content(text):
+                            # 尝试匹配中括号内的内容
+                            pattern_brackets = r'\{(.*?)\}' 
+                            match_brackets = re.search(pattern_brackets, text)
+                            if match_brackets:
+                                return match_brackets.group(1)  # 返回匹配到的内容
+
+                            # 如果没有中括号，按空格分割
+                            parts = text.split()
+                            if parts:
+                                return parts[0]  # 返回第一个部分
+
+                            return None  # 如果没有任何内容，返回 None
+
+                        def change_font_dialog(font_input):
+                            # print("--------------\n"+font_input+"\n--------------")
+                            logging.info(f"用户选择的字体: {font_input}")
+                            tkt.constants.FONT = extract_content(font_input)
+                        tkt.dialogs.TkFontChooser(master=root,command=change_font_dialog)
+                        root.update_idletasks()
+                        root.update_idletasks()
+                        canvas_setting_pages.update()
+                        canvas_setting_pages.update_idletasks()
+                        choose_font.destroy()
+                        choose_font=tkt.SegmentedButton(canvas_setting_pages, (20, 380), texts=["霞鹜文楷",f"自定义-[{tkt.constants.FONT}]"], layout="horizontal",command=change_font,default=1)
+
+            if changed_font:
+                choose_font =tkt.SegmentedButton(canvas_setting_pages, (20, 380), texts=["霞鹜文楷",f"自定义-[{tkt.constants.FONT}]"], layout="horizontal",command=change_font,default=1)
+            else:
+                choose_font =tkt.SegmentedButton(canvas_setting_pages, (20, 380), texts=["霞鹜文楷","自定义-[未选择]"], layout="horizontal",command=change_font,default=0)
+            
+
+
+            
+
+        case 1:   
+        
+            canvas_setting_pages.delete("all")
+            canvas_setting_pages.destroy()
+            canvas_setting_pages = tkt.Canvas(canvas_setting, zoom_item=True, keep_ratio="min", free_anchor=True)
+            canvas_setting_pages.place(x=170, y=140, width=1000, height=500, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 10), text="数据", fontsize=30, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 50), text="清理数据", fontsize=20, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 80), text=f"缓存文件：{get_folder_size("temp"):.2f}MB | 已保存的日志数量：{get_file_count('logs')}", fontsize=20, anchor="nw")
+            del_temp=tkt.Button(canvas_setting_pages, (10, 110), text="清空缓存", command=lambda: del_temp_folder(),size=(500,50))
+            del_log=tkt.Button(canvas_setting_pages, (510, 110), text="清空日志", command=lambda: del_log_folder(),size=(500,50))
+            tkt.Text(canvas_setting_pages, (10, 165), text="壁纸默认下载位置", fontsize=20, anchor="nw")
+            path_show=tkt.Text(canvas_setting_pages, (10, 195), text=f"当前壁纸下载位置：{cog["download_path"]}", fontsize=20, anchor="nw")
+            def change_download_path():
+                new_path =filedialog.askdirectory(initialdir=cog["download_path"],title="选择壁纸下载位置",parent=root,mustexist=True)
+                if new_path:
+                    logging.info(f"用户选择的新下载位置: {new_path}")
+                    cog["download_path"] = new_path.replace("/","\\")
+                    save_cog()
+                    path_show.set(f"当前壁纸下载位置：{cog['download_path']}")
+            def change_download_path_default():
+                Download_Path = get_my_pictures_path()
+                cog["download_path"] = Download_Path
+                logging.info(f"恢复默认下载位置: {Download_Path}")
+                path_show.set(f"当前壁纸下载位置：{Download_Path}")
+                save_cog()
+            tkt.Button(canvas_setting_pages, (10, 230), text="更改下载位置", command=change_download_path, size=(1000,50))
+            tkt.Button(canvas_setting_pages, (10, 280), text="恢复默认位置", command=change_download_path_default, size=(1000,50))
+        case 2:
+
+            canvas_setting_pages.delete("all")
+            canvas_setting_pages.destroy()
+            canvas_setting_pages = tkt.Canvas(canvas_setting, zoom_item=True, keep_ratio="min", free_anchor=True)
+            canvas_setting_pages.place(x=170, y=140, width=1000, height=500, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 10), text="调试", fontsize=30, anchor="nw")
+            canvas_setting_pages.create_rectangle(0, 0, 1000, 500, fill="blue", outline="black", width=2)
+            test_image=tkt.Image(canvas_setting_pages, (0, 0), image=resize_image(r"./assets/images/test0.jpg",500))
+            tt1=canvas_setting_pages.create_text(500, 230, text="设置分页框架区域", font=("微软雅黑", 30), anchor="center", fill="white")
+            tt2=canvas_setting_pages.create_text(500, 270, text="1000x500", font=("微软雅黑", 30), anchor="center", fill="white")
+            tt3=canvas_setting_pages.create_text(0, 0, text="轮播图+随机颜色测试 100次 1秒间隔", font=("微软雅黑", 30), anchor="nw", fill="white")
+            def generate_random_hex_color():
+                r = random.randint(0, 255)
+                g = random.randint(0, 255)
+                b = random.randint(0, 255)
+                hex_color = '#{:02x}{:02x}{:02x}'.format(r, g, b)
+                return hex_color
+            def change_test_image():
+                for i in range(100):
+                    test_image.set(image=resize_image(f"./assets/images/test{random.randint(0,4)}.jpg",500))
+                    time.sleep(1)
+                    root.update_idletasks()
+                    canvas_setting_pages.itemconfig(tt1, fill=generate_random_hex_color())
+                    canvas_setting_pages.itemconfig(tt2, fill=generate_random_hex_color())
+                    canvas_setting_pages.itemconfig(tt3, fill=generate_random_hex_color())
+        
+
+            canvas_setting_pages.after(500, change_test_image)
+        case 3:
+            about()
+        case 4:
+            os._exit(0)
+tkt.SegmentedButton(canvas_setting, [80, 200], texts=["外观", "数据", "调试", "关于", "退出"], layout="vertical",command=change_setting_page)
 # # 设置目标宽度或高度
 # base_width1 = 150  # 你可以根据需要调整这个值
 # # 计算比例并调整图片大小
@@ -877,9 +1151,7 @@ def del_log_folder():
         del_log.disabled(False)
     else:
         logging.info("清空日志文件夹操作已取消")
-del_temp=tkt.Button(canvas_setting, (1280//2-150, 720//2), text="清空缓存", command=lambda: del_temp_folder())
 
-del_log=tkt.Button(canvas_setting, (1280//2+150, 720//2), text="清空日志", command=lambda: del_log_folder())
 
 
 
@@ -896,7 +1168,7 @@ def set_eggwallpaper():
         timeout=3,
     )
 canvas_egg = tkt.Canvas(root, zoom_item=True, keep_ratio="min", free_anchor=True)
-tkt.Text(canvas_egg, (100, 100), text="彩蛋", fontsize=50)
+tkt.Text(canvas_egg, (100, 100), text="彩蛋", fontsize=50,anchor="center")
 tkt.Text(canvas_egg, (100, 150), text="恭喜你发现了一个彩蛋！", fontsize=25, anchor="w")
 canvas_artistic = tkt.Canvas(canvas_egg, zoom_item=True, keep_ratio="min", free_anchor=True)
 canvas_artistic.place(x=50, y=650,width=200,height=40,anchor="nw")
@@ -919,7 +1191,7 @@ base_width = 300
 w_percent = base_width / float(img.size[0])
 h_size = int(float(img.size[1]) * float(w_percent))
 img = img.resize((base_width, h_size), Image.Resampling.LANCZOS)
-tkt.Image(canvas_egg, (200, 400), image=tkt.PhotoImage(img))
+tkt.Image(canvas_egg, (200, 400), image=tkt.PhotoImage(img), anchor="center")
 
 ### ✨ 关于面板
 canvas_about = tkt.Canvas(root, zoom_item=True, keep_ratio="min", free_anchor=True)
@@ -1018,7 +1290,7 @@ def wallpaper_detail(*args):
     # tkt.Text(canvas_wallpaper_detail, (100, 150), text="壁纸来源：", fontsize=30,anchor="nw")
     # tkt.Text(canvas_wallpaper_detail, (100, 200), text="Unsplash", fontsize=30,anchor="nw")
     # tkt.Text(canvas_wallpaper_detail, (100, 250), text="Wallhaven", fontsize=30,anchor="nw")
-    tkt.Image(canvas_wallpaper_detail,[80,120],image=resize_image(wallpaper_path,250),anchor="nw")
+    tkt.Image(canvas_wallpaper_detail,[80,120],image=resize_image(wallpaper_path,300),anchor="nw")
     
     # tkt.Button(canvas_wallpaper_detail, (100, 600), text="设为壁纸", command=lambda: copy_and_set_wallpaper(wallpaper_path))
 
@@ -1042,7 +1314,8 @@ def wallpaper_detail(*args):
     tkt.Text(copy_w_bing_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons",anchor="nw")
     copy_w_bing_icon.bind("<Button-1>", lambda event: copy_wallpaper())
     tkt.Text(canvas_wallpaper_detail,(990, 705),text="复制",fontsize=15,anchor="center")   
-    
+    canvas_wallpaper_detail.create_text(80, 450,text=f"",font=("Segoe Fluent lcons",25),anchor="nw",fill="red")
+    tkt.Text(canvas_wallpaper_detail,(110, 440),text=f"版权警告：图片仅供作为壁纸使用，禁止用于其他用途",fontsize=23,anchor="nw")
     # tkt.Text(canvas_wallpaper_detail, (100, 650), text="壁纸来源：", fontsize=30,anchor="nw")
 
 #### 壁纸面板-Unsplash源
@@ -1082,7 +1355,7 @@ def download_wallpaper():
         global wallpaper_path
         try:
             url = api_url
-            root.update()
+            root.update_idletasks()
 
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
@@ -1263,8 +1536,9 @@ def wallpaper_二次元():
                     api_url="https://img.paulzzh.com/touhou/random"
                 case 2:
                     api_url="https://www.dmoe.cc/random.php" 
-                
-        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["[忆云]随机","[PAULZZH]东方","[樱花]随机"], command=other_wallpaper_ch, default=0)
+                case 3:
+                    api_url=random.choice(["https://i.postimg.cc/zf2yRGXj/image.jpg","https://i.postimg.cc/ZRjVN3vQ/image.jpg","https://i.postimg.cc/FRVG56y8/4b290f6e-b886-effb-b9b1-4a97bbeea0fe.jpg","https://i.postimg.cc/3RZMSndJ/a3cde8b4-0197-1ad3-3760-9cb95dbc6517.jpg","https://i.postimg.cc/02RWMpQV/ea0ff1ca-0358-4fca-b2bb-5b3a51706bdc.jpg","https://i.postimg.cc/qRttT6HK/f5fd0dc2722faf65c455943574b087863546706878663505.jpg","https://i.postimg.cc/0NZ9J3vB/ss-f1ba762ccb2918909b05051891316f27ecbbb245-1920x1080.jpg"])
+        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["[忆云]随机","[PAULZZH]东方","[樱花]随机","[个人收集]饿殍：明末千里行"], command=other_wallpaper_ch, default=0)
 
 
     def 二次元_ch(ch1):
@@ -1426,6 +1700,7 @@ def wallpaper_360():
                     pb1.set(progress)
                     def change_img(img_index):
                         nonlocal now_show_img
+            
                         img_show_360.set(resize_image(wallpaper_360_path_list[img_index],270))
                         now_show_img=wallpaper_360_path_list[img_index]
                     if progress >= 1:
@@ -1481,6 +1756,11 @@ def wallpaper_360():
                             if cog["clear_cache_when_360_back"]:
                                 logging.info("需要强制清理缓存")
                                 clear_folder("./temp", os.path.basename(fn))
+                            back_wallpaper_detail.destroy()
+                            set_w_bing_icon.destroy()
+                            ll_icon.destroy()
+                            dd_icon.destroy()
+                            copy_w_bing_icon.destroy()
                             canvas_wallpaper_more_360_dowload.place_forget()
                             canvas_wallpaper_more_360_dowload.delete("all")
                             wallpaper()
@@ -1513,7 +1793,8 @@ def wallpaper_360():
                         copy_w_bing_icon.bind("<Button-1>", lambda event: copy_wallpaper())
                         tkt.Text(canvas_wallpaper_more_360_dowload,(990, 705),text="复制",fontsize=15,anchor="center")   
 
-                
+                        canvas_wallpaper_more_360_dowload.create_text(80, 575,text=f"",font=("Segoe Fluent lcons",25),anchor="nw",fill="red")
+                        tkt.Text(canvas_wallpaper_more_360_dowload,(110, 570),text=f"版权警告：图片仅供作为壁纸使用，禁止用于其他用途",fontsize=23,anchor="nw")
                 def long_running_task1():
                     global wallpaper_360_path_list
                     try:
@@ -1623,23 +1904,22 @@ def bing_detail():
     canvas_download.delete("all")
     canvas_download.place_forget()
     global huazhiv
+    huazhiv=index_detail['url']
     def huazhi_re1(*args):
         global huazhiv
-        huazhiv=0
+        huazhiv=index_detail['url']
         # print(1080)
     def huazhi_re2(*args):
         global huazhiv
-        huazhiv=1
+        huazhiv=index_detail['url'].replace('1920x1080', 'UHD')
         # print("UHD")
     def dd(*args):
         def long_running_task1():
             try:
                 # global bing_data_name
-                url=bing_data[0]['url']
-                if(huazhiv):
-                    url=bing_data[0]['url'].replace('1920x1080', 'UHD')
+                url=huazhiv
                 # print(getBingImg())
-                root.update() 
+                root.update_idletasks() 
                 # 自定义用户代理
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
@@ -1647,16 +1927,16 @@ def bing_detail():
 
                 # 发送HEAD请求以获取文件大小
                 response = requests.head(url, headers=headers)
-                root.update() 
+                root.update_idletasks() 
                 file_size = int(response.headers.get('Content-Length', 0))
-                root.update() 
+                root.update_idletasks() 
                 # 自动识别文件名和扩展名
                 # filename = url.split('/')[-1] or 'downloaded_file'
                 filename = f"{time.strftime('Bing_%Y-%m-%d.jpg', time.localtime())}"
-                root.update() 
+                root.update_idletasks() 
                 if not filename:
                     filename = 'downloaded_file'
-                root.update() 
+                root.update_idletasks() 
                 # 设定分段大小（例如：1MB）
                 chunk_size = 1024 * 1024  # 1MB
                 num_chunks = (file_size // chunk_size) + 1
@@ -1665,21 +1945,21 @@ def bing_detail():
 
                 with open(f"{cog["download_path"]}\\{filename}", 'wb') as file:
                     for i in range(num_chunks):
-                        root.update()
+                        root.update_idletasks()
                         start = i * chunk_size
                         end = min(start + chunk_size - 1, file_size - 1)
 
                         # 设置Range请求头
                         range_header = {'Range': f'bytes={start}-{end}'}
                         chunk_response = requests.get(url, headers={**headers, **range_header}, stream=True)
-                        root.update()
+                        root.update_idletasks()
                         if chunk_response.status_code in (200, 206):  # 206表示部分内容
                             file.write(chunk_response.content)
-                            root.update()
+                            root.update_idletasks()
                             logging.info(f"下载段 {i + 1}/{num_chunks} 完成，大小: {len(chunk_response.content)} bytes")
                         else:
                             logging.info(f"下载失败，状态码: {chunk_response.status_code}")
-                            root.update()
+                            root.update_idletasks()
                             tkt.dialogs.TkMessage(f"下载失败，状态码: {chunk_response.status_code}", title="错误", icon="error")
                             os._exit(0)
                 # print(bing_data_name)
@@ -1719,11 +1999,9 @@ def bing_detail():
         def long_running_task1():
             try:
                 # global bing_data_name
-                url=bing_data[0]['url']
-                if(huazhiv):
-                    url=bing_data[0]['url'].replace('1920x1080', 'UHD')
+                url=huazhiv
                 # print(getBingImg())
-                root.update() 
+                root.update_idletasks() 
                 # 自定义用户代理
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
@@ -1731,18 +2009,18 @@ def bing_detail():
 
                 # 发送HEAD请求以获取文件大小
                 response = requests.head(url, headers=headers)
-                root.update() 
+                root.update_idletasks() 
                 file_size = int(response.headers.get('Content-Length', 0))
-                root.update() 
+                root.update_idletasks() 
                 # 自动识别文件名和扩展名
                 # filename = url.split('/')[-1] or 'downloaded_file'
                 filename = filedialog.asksaveasfilename(title='Bing-另存为', filetypes=[('JPEG文件', '.jpg')], defaultextension=".jpg")
-                root.update() 
+                root.update_idletasks() 
                 if not filename:
                     
                     while(filename is not True):
                         filename = filedialog.asksaveasfilename(title='Bing-另存为', filetypes=[('JPEG文件', '.jpg')], defaultextension=".jpg")
-                root.update() 
+                root.update_idletasks() 
                 # 设定分段大小（例如：1MB）
                 chunk_size = 1024 * 1024  # 1MB
                 num_chunks = (file_size // chunk_size) + 1
@@ -1751,21 +2029,21 @@ def bing_detail():
                 # fnn=filedialog.askdirectory()
                 with open(f"{filename}", 'wb') as file:
                     for i in range(num_chunks):
-                        root.update()
+                        root.update_idletasks()
                         start = i * chunk_size
                         end = min(start + chunk_size - 1, file_size - 1)
 
                         # 设置Range请求头
                         range_header = {'Range': f'bytes={start}-{end}'}
                         chunk_response = requests.get(url, headers={**headers, **range_header}, stream=True)
-                        root.update()
+                        root.update_idletasks()
                         if chunk_response.status_code in (200, 206):  # 206表示部分内容
                             file.write(chunk_response.content)
-                            root.update()
+                            root.update_idletasks()
                             logging.info(f"下载段 {i + 1}/{num_chunks} 完成，大小: {len(chunk_response.content)} bytes")
                         else:
                             logging.info(f"下载失败，状态码: {chunk_response.status_code}")
-                            root.update()
+                            root.update_idletasks()
                             tkt.dialogs.TkMessage(f"下载失败，状态码: {chunk_response.status_code}", title="错误", icon="error")
                             os._exit(0)
                 # print(bing_data_name)
@@ -1805,11 +2083,9 @@ def bing_detail():
         def long_running_task1():
             try:
                 # global bing_data_name
-                url=bing_data[0]['url']
-                if(huazhiv):
-                    url=bing_data[0]['url'].replace('1920x1080', 'UHD')
+                url=huazhiv
                 # print(getBingImg())
-                root.update() 
+                root.update_idletasks() 
                 # 自定义用户代理
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
@@ -1817,16 +2093,16 @@ def bing_detail():
 
                 # 发送HEAD请求以获取文件大小
                 response = requests.head(url, headers=headers)
-                root.update() 
+                root.update_idletasks() 
                 file_size = int(response.headers.get('Content-Length', 0))
-                root.update() 
+                root.update_idletasks() 
                 # 自动识别文件名和扩展名
                 # filename = url.split('/')[-1] or 'downloaded_file'
                 # filename = f"{time.strftime('Bing_%Y-%m-%d.jpg', time.localtime())}"
-                root.update() 
+                root.update_idletasks() 
                 # if not filename:
                     # filename = 'downloaded_file'
-                root.update() 
+                root.update_idletasks() 
                 # 设定分段大小（例如：1MB）
                 chunk_size = 1024 * 1024  # 1MB
                 num_chunks = (file_size // chunk_size) + 1
@@ -1835,21 +2111,21 @@ def bing_detail():
 
                 with open("C:/xiaoshu_wallpaper/bk.jpg", 'wb') as file:
                     for i in range(num_chunks):
-                        root.update()
+                        root.update_idletasks()
                         start = i * chunk_size
                         end = min(start + chunk_size - 1, file_size - 1)
 
                         # 设置Range请求头
                         range_header = {'Range': f'bytes={start}-{end}'}
                         chunk_response = requests.get(url, headers={**headers, **range_header}, stream=True)
-                        root.update()
+                        root.update_idletasks()
                         if chunk_response.status_code in (200, 206):  # 206表示部分内容
                             file.write(chunk_response.content)
-                            root.update()
+                            root.update_idletasks()
                             logging.info(f"下载段 {i + 1}/{num_chunks} 完成，大小: {len(chunk_response.content)} bytes")
                         else:
                             logging.info(f"下载失败，状态码: {chunk_response.status_code}")
-                            root.update()
+                            root.update_idletasks()
                             tkt.dialogs.TkMessage(f"下载失败，状态码: {chunk_response.status_code}", title="错误", icon="error")
                             os._exit(0)
                 # print(bing_data_name)
@@ -1890,11 +2166,9 @@ def bing_detail():
         def long_running_task1():
             try:
                 # global bing_data_name
-                url=bing_data[0]['url']
-                if(huazhiv):
-                    url=bing_data[0]['url'].replace('1920x1080', 'UHD')
+                url=huazhiv
                 # print(getBingImg())
-                root.update() 
+                root.update_idletasks() 
                 # 自定义用户代理
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
@@ -1902,14 +2176,14 @@ def bing_detail():
 
                 # 发送HEAD请求以获取文件大小
                 response = requests.head(url, headers=headers)
-                root.update() 
+                root.update_idletasks() 
                 file_size = int(response.headers.get('Content-Length', 0))
-                root.update() 
+                root.update_idletasks() 
                 # 自动识别文件名和扩展名
                 # filename = url.split('/')[-1] or 'downloaded_file'
-                root.update() 
+                root.update_idletasks() 
 
-                root.update() 
+                root.update_idletasks() 
                 # 设定分段大小（例如：1MB）
                 chunk_size = 1024 * 1024  # 1MB
                 num_chunks = (file_size // chunk_size) + 1
@@ -1918,21 +2192,21 @@ def bing_detail():
 
                 with open(f"{TEMP}\\copy.jpg", 'wb') as file:
                     for i in range(num_chunks):
-                        root.update()
+                        root.update_idletasks()
                         start = i * chunk_size
                         end = min(start + chunk_size - 1, file_size - 1)
 
                         # 设置Range请求头
                         range_header = {'Range': f'bytes={start}-{end}'}
                         chunk_response = requests.get(url, headers={**headers, **range_header}, stream=True)
-                        root.update()
+                        root.update_idletasks()
                         if chunk_response.status_code in (200, 206):  # 206表示部分内容
                             file.write(chunk_response.content)
-                            root.update()
+                            root.update_idletasks()
                             logging.info(f"下载段 {i + 1}/{num_chunks} 完成，大小: {len(chunk_response.content)} bytes")
                         else:
                             logging.info(f"下载失败，状态码: {chunk_response.status_code}")
-                            root.update()
+                            root.update_idletasks()
                             tkt.dialogs.TkMessage(f"下载失败，状态码: {chunk_response.status_code}", title="错误", icon="error")
                             os._exit(0)
                 # print(bing_data_name)
@@ -1971,12 +2245,12 @@ def bing_detail():
         start_task1()
     tkt.Text(canvas_detail,(50, 70),text="详细信息",fontsize=40,anchor="w")
     tkt.Text(canvas_detail,(50, 110),text="今日Bing",fontsize=25,anchor="w")
-    tkt.Text(canvas_detail,(50, 140),text=f"{bing_data[0]['date']}",fontsize=18,anchor="w")
+    tkt.Text(canvas_detail,(50, 140),text=f"{index_detail['date']}",fontsize=18,anchor="w")
     tkt.Text(canvas_detail,(50, 170),text=f"标题：{b_title}",fontsize=25,anchor="w")
     canvas_copyright=tkt.Canvas(canvas_detail,zoom_item=True,keep_ratio=False)
     canvas_copyright.place(x=40,y=190,width=1200,height=25,anchor="nw")
     tkt.Text(canvas_copyright,(10,10),text=f"版权：{b_copyright}",fontsize=25,anchor="w",underline=True)
-    canvas_copyright.bind("<Button-1>", lambda event: webbrowser.open(bing_data[0]['copyrightlink']))
+    canvas_copyright.bind("<Button-1>", lambda event: webbrowser.open(index_detail['copyrightlink']))
     # bq=canvas_detail.create_text(50,200,text=f"版权：{b_copyright}",font=25,anchor="w")
     # canvas_detail.tag_bind(bq, "<Button-1>", lambda event: webbrowser.open(bing_data[0]['copyrightlink']))
     tkt.Text(canvas_detail,(50, 230),text=f"预览：",fontsize=25,anchor="w")
@@ -1992,17 +2266,30 @@ def bing_detail():
     resized_image = original_image.resize((new_width, new_height), Image.LANCZOS)
     tkt.Image(canvas_detail, (300, 320), image=tkt.PhotoImage(resized_image),anchor="center")
     tkt.Text(canvas_detail,(50, 390),text=f"",fontsize=40,anchor="w")
-    tkt.Text(canvas_detail,(80, 440),text=f"",fontsize=23,anchor="nw")._texts[0].styles["normal"] = {"fill": "red"}
+    canvas_detail.create_text(80, 450,text=f"",font=("Segoe Fluent lcons",25),anchor="nw",fill="red")
     tkt.Text(canvas_detail,(110, 440),text=f"版权警告：图片仅供作为壁纸使用，禁止用于其他用途",fontsize=23,anchor="nw")
     # canvas_detail.create_text(90, 440, text="版权警告：图片仅供作为壁纸使用，禁止用于其他用途", font=23,anchor="nw")
     # canvas_detail.create_image(130, 220, anchor="nw", image=tkt.PhotoImage(resized_image)) 
-    huazhiv=0
-    tkt.Text(canvas_detail,(980, 615),text="画质：",fontsize=18,anchor="center")
-    # canvas_detail.create_text(980, 615, text="画质：", font=18)
-    def ch_return(ch1):
-        (huazhi_re1, huazhi_re2)[ch1]()
-    tkt.SegmentedButton(canvas_detail, (1000, 585), texts=(
-        "1080P", "HUD(原图)"), default=0, command=ch_return)
+    # huazhiv=0
+    if image_type=="bing":
+        tkt.Text(canvas_detail,(980, 615),text="画质：",fontsize=18,anchor="center")
+        # canvas_detail.create_text(980, 615, text="画质：", font=18)
+        def ch_return(ch1):
+            (huazhi_re1, huazhi_re2)[ch1]()
+        tkt.SegmentedButton(canvas_detail, (1000, 585), texts=(
+            "1080P", "HUD(原图)"), default=0, command=ch_return)
+    else:
+        tkt.Text(canvas_detail,(980, 615),text="方向：",fontsize=18,anchor="center")
+        # canvas_detail.create_text(980, 615, text="画质：", font=18)
+        def ch_return(ch1):
+            global huazhiv
+            match ch1:
+                case "横向":
+                    huazhiv=huazhiv
+                case "纵向":
+                    huazhiv=index_detail["portrait_image"]
+        tkt.SegmentedButton(canvas_detail, (1000, 585), texts=(
+            "横向", "纵向"), default=0, command=ch_return)        
     set_w_bing_icon = tkt.Canvas(canvas_detail, zoom_item=True, keep_ratio="min", free_anchor=True)
     set_w_bing_icon.place(x=1230, y=670,width=40,height=50,anchor="center")
     tkt.Text(set_w_bing_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons",anchor="nw")
@@ -2086,7 +2373,7 @@ def getBingImg():
         response = requests.get(
             "https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=7&mkt=zh-CN",
             headers=headers, #请求头
-            timeout=3, #设置请求超时时间
+            timeout=5, #设置请求超时时间
         )
         response = json.loads(response.text) #转化为json
         imgList = []
@@ -2102,7 +2389,41 @@ def getBingImg():
         return imgList #返回一个数据数组
     except:
         return False
+def getSpotlightImg():
+    try:
+        headers={
+            'Content-Type':'application/json; charset=utf-8',
+            'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36', #不是必须
+        }
+        response = requests.get(
+            "https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=4&country=zh&locale=zh-cn&fmt=json",
+            headers=headers, #请求头
+            timeout=5, #设置请求超时时间
+        )
 
+        image_links = []
+
+        for item in response.json()['batchrsp']['items']:
+            item_data = json.loads(item['item'])  # 再次解析 item
+            ad_data = item_data['ad']
+            
+            landscape_image = ad_data['landscapeImage']['asset']
+            portrait_image = ad_data['portraitImage']['asset']
+            title = ad_data['title']
+            copyright = ad_data['copyright']
+            cta_url = ad_data['ctaUri']
+
+            image_links.append({
+                'url': landscape_image,
+                'portrait_image': portrait_image,
+                'title': title,
+                'copyright': copyright,
+                'date' : f"{datetime.datetime.now().year}-{datetime.datetime.now().month}-{datetime.datetime.now().day}",
+                'copyrightlink': cta_url,
+            })
+        return image_links #返回一个数据数组
+    except:
+        return False
 def clean_filename(filename):
     # 替换无效字符
     return re.sub(r'[<>:"/\\|?*]', '_', filename).removesuffix("&pid=hp")
