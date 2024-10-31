@@ -40,8 +40,7 @@ print(f"{Style.RESET_ALL}\n\n")
 print(f"{Fore.YELLOW}⚠️⚠️⚠️")
 print(f"{Fore.YELLOW}-----------------------------------------------")
 print(f"{Fore.YELLOW}你正在使用未经测试的开发版本，请谨慎使用！")
-print(f"{Fore.YELLOW}开发版本禁止外泄！")
-print(f"{Fore.YELLOW}测试版本不能代表最终品质，请不要将其分享给他人！")
+print(f"{Fore.YELLOW}测试版本不能代表最终品质，请不要将其分享到群聊、社交媒体等！")
 print(f"{Fore.YELLOW}-----------------------------------------------")
 print(f"{Style.RESET_ALL}")
 
@@ -73,8 +72,8 @@ logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format=LOG_FORMAT,enc
 logging.info("------程序启动------")
 logging.info("日志加载成功")
 # logging.error("hello")
-VER = "v6.0.0-beta.4"
-software_VER="6.0.0.b.4"
+VER = "v6.0.0-rc.1"
+software_VER="6.0.0.rc.1"
 root=tkt.Tk(title=f"小树壁纸{VER}")
 
 logging.info("初始化窗口成功")
@@ -148,28 +147,28 @@ def get_input():
                     )
                     tkt.style.set_color_mode("dark")
                 case "粉雕玉琢":
-                    tkt.style.set_theme_map(light=粉雕玉琢)
+                    tkt.style.set_theme_map(light_theme=粉雕玉琢)
                     tkt.style.set_color_mode("light")
                 case "原木秋色":
-                    tkt.style.set_theme_map(light=原木秋色)
+                    tkt.style.set_theme_map(light_theme=原木秋色)
                     tkt.style.set_color_mode("light")
                 case "国行公祭":
-                    tkt.style.set_theme_map(light=国行公祭)
+                    tkt.style.set_theme_map(light_theme=国行公祭)
                     tkt.style.set_color_mode("light")
                 case "粉花春色":
-                    tkt.style.set_theme_map(light=粉花春色)
+                    tkt.style.set_theme_map(light_theme=粉花春色)
                     tkt.style.set_color_mode("light")
                 case "中秋月下":
-                    tkt.style.set_theme_map(light=中秋月下)
+                    tkt.style.set_theme_map(light_theme=中秋月下)
                     tkt.style.set_color_mode("light")
                 case "欢庆春节":
-                    tkt.style.set_theme_map(light=欢庆春节)
+                    tkt.style.set_theme_map(light_theme=欢庆春节)
                     tkt.style.set_color_mode("light")
                 case "清明祭扫":
-                    tkt.style.set_theme_map(light=清明祭扫)
+                    tkt.style.set_theme_map(light_theme=清明祭扫)
                     tkt.style.set_color_mode("light")
                 case "黄昏蓝调":
-                    tkt.style.set_theme_map(light=黄昏蓝调)
+                    tkt.style.set_theme_map(light_theme=黄昏蓝调)
                     tkt.style.set_color_mode("light")
                 case "list":
                     print("可选主题：")
@@ -185,6 +184,24 @@ input_thread.start()
 
 
 ### ✨ 功能性函数
+def rgb_to_hex(red, green, blue):
+    return f"#{red:02x}{green:02x}{blue:02x}"
+def get_windows_theme_color():
+    # 打开注册表路径
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'SOFTWARE\Microsoft\Windows\DWM')
+    # 读取 ColorizationColor 值
+    value, _ = winreg.QueryValueEx(key, 'ColorizationColor')
+    winreg.CloseKey(key)
+    
+    # 解析 ARGB 值
+    alpha = (value >> 24) & 0xFF
+    red = (value >> 16) & 0xFF
+    green = (value >> 8) & 0xFF
+    blue = value & 0xFF
+    
+    # 返回 RGB 颜色
+    return rgb_to_hex(red, green, blue)
+
 def get_file_count(folder_path):
     file_count = 0
     for dirpath, dirnames, filenames in os.walk(folder_path):
@@ -350,6 +367,7 @@ df_settings = {
         "use_proxy_for_wallpaper": 0,
         "proxy_for_wallpaper": {},
         "home_page_image": "bing",
+        "home_page_style": "default",
 }
 proxy_list = {
     "ghproxy.cn":"https://www.ghproxy.cn/",
@@ -389,7 +407,7 @@ else:
         except json.decoder.JSONDecodeError:
             # print("JSON格式错误")
             tkt.dialogs.TkMessage(icon="error",title="读取设置错误",message="JSON格式错误")
-            tkt.dialogs.TkMessage(icon="question",title="重置设置",message="你确定要重置设置吗？" ,command=callbacks,default="yes",detail="重置后，你的设置将会被重置，是否继续？",type="yesno")
+            tkt.dialogs.TkMessage(icon="question",title="重置设置",message="你确定要重置设置吗？" ,command=callbacks,default="yes",detail="重置后，你的设置将会被重置，是否继续？",option="yesno")
             # print(event_get)
             if event_get == "yes":
                 reset()
@@ -399,7 +417,7 @@ else:
                 os._exit(0)
 if (list(df_settings.keys()) != list(cog.keys()) and len(df_settings) > len(cog)):
     tkt.dialogs.TkMessage(icon="error",title="读取设置错误",message="设置项缺失")
-    tkt.dialogs.TkMessage(icon="question",title="重置设置",message="你确定要重置设置吗？" ,command=callbacks,default="yes",detail="重置后，你的设置将会被清除，是否继续？",type="yesno")
+    tkt.dialogs.TkMessage(icon="question",title="重置设置",message="你确定要重置设置吗？" ,command=callbacks,default="yes",detail="重置后，你的设置将会被清除，是否继续？",option="yesno")
     # print(event_get)
     if event_get == "yes":
         reset()
@@ -411,7 +429,7 @@ elif (list(df_settings.keys()) != list(cog.keys()) and len(df_settings) < len(co
     tkt.dialogs.TkMessage(icon="info",title="读取设置异常",message="设置项过多",detail="多余的设置项将会被忽略。您可能使用了旧版本的程序，建议您更新程序。")
     # print("reset")
     # print("reset")
-    tkt.dialogs.TkMessage(icon="question",title="重置设置",message="你确定要重置设置吗？" ,command=callbacks,default="yes",detail="重置后，你的设置将会被清除，是否继续？",type="yesno")
+    tkt.dialogs.TkMessage(icon="question",title="重置设置",message="你确定要重置设置吗？" ,command=callbacks,default="yes",detail="重置后，你的设置将会被清除，是否继续？",option="yesno")
     # print(event_get)
     if event_get == "yes":
         reset()
@@ -421,7 +439,7 @@ elif (list(df_settings.keys()) != list(cog.keys()) and len(df_settings) < len(co
         os._exit(0)
 elif list(df_settings.keys()) != list(cog.keys()) and len(df_settings) == len(cog):
     tkt.dialogs.TkMessage(icon="info",title="读取设置异常",message="设置文件键不一致",detail="您可能使用了不兼容更新版本的配置文件，设置必须重置。")
-    tkt.dialogs.TkMessage(icon="question",title="重置设置",message="你确定要重置设置吗？" ,command=callbacks,default="yes",detail="重置后，你的设置将会被清除，是否继续？",type="yesno")
+    tkt.dialogs.TkMessage(icon="question",title="重置设置",message="你确定要重置设置吗？" ,command=callbacks,default="yes",detail="重置后，你的设置将会被清除，是否继续？",option="yesno")
     if event_get == "yes":
         reset()
         # print("reset")
@@ -717,7 +735,7 @@ def fetch_latest_release(ty : str = cog["update_channel"]):
             return ["Error"]
     elif ty == "test_update":
         logging.info("测试更新")
-        return [True, "V6.0.0.1测试版本号","以下为Lorem Ipsum占位文本\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla at ligula vel velit suscipit ultricies. \nAliquam sit amet nisl sit amet metus semper tincidunt. Morbi velit est, auctor in fringilla eu, \ntincidunt non tortor. Mauris molestie felis turpis. Phasellus eu venenatis ante, et venenatis velit. \nMorbi sed faucibus orci. Suspendisse tincidunt risus non hendrerit maximus.\n\n感谢你参与本次测试！(≧∇≦)ﾉ\n\t\t\t\t-更新提示测试-", None, None]
+        return [True, "V0.1.0 Next","小树壁纸 Next α 测试已开始\n\n感谢你参与本次测试！(≧∇≦)ﾉ\n\t\t\t\t-更新提示测试-", None, None]
 def check_update():
     global have_update,update_available
     # 检查更新
@@ -744,32 +762,63 @@ def index_window(*args):
     # canvas_index.place(width=1280, height=720, x=640, y=360, anchor="center")
     is_load_main = True
     canvas_loading.place_forget()
-
+    if cog["window_wallpaper_path"]:
+        tkt.Image(canvas_index, (0,0), image=resize_image(cog["window_wallpaper_path"],720), anchor="nw")
+        # print(cog["window_wallpaper_path"])
     # 初始化裁剪图片的缓存
     if 'cropped_image_cache' not in globals():
         cropped_image_cache = None
+    # def to_setting(act, is_act):
+    #     print(act, is_act)
 
-    to_setting_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
-    to_setting_icon.place(x=50, y=670, width=40, height=50, anchor="center")
-    tkt.Text(to_setting_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons", anchor="nw")
-    to_setting_icon.bind("<Button-1>", lambda event: setting())
+    # tkt.Text(canvas_index, (50, 670), text="", fontsize=40, family="Segoe Fluent lcons", anchor="center")
 
-    to_about_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
-    to_about_icon.place(x=100, y=670, width=40, height=53, anchor="center")
-    tkt.Text(to_about_icon, (0, 10), text="", fontsize=43, family="Segoe Fluent lcons", anchor="nw")
-    to_about_icon.bind("<Button-1>", lambda event: about(), add="+")
-    to_about_icon.bind("<Button-2>", lambda event: about(), add="+")
-    to_about_icon.bind("<Button-3>", lambda event: egg(), add="+")
+    if cog["home_page_style"] == "default":
+        to_setting_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+        to_setting_icon.place(x=50, y=670, width=40, height=50, anchor="center")
+        tkt.Text(to_setting_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons", anchor="nw")
+        to_setting_icon.bind("<Button-1>", lambda event: setting())
 
-    go_in_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
-    go_in_icon.place(x=1230, y=670, width=40, height=50, anchor="center")
-    tkt.Text(go_in_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons", anchor="nw")
-    go_in_icon.bind("<Button-1>", lambda event: wallpaper())
+        to_about_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+        to_about_icon.place(x=100, y=670, width=40, height=53, anchor="center")
+        tkt.Text(to_about_icon, (0, 10), text="", fontsize=43, family="Segoe Fluent lcons", anchor="nw")
+        to_about_icon.bind("<Button-1>", lambda event: about(), add="+")
+        to_about_icon.bind("<Button-2>", lambda event: about(), add="+")
+        to_about_icon.bind("<Button-3>", lambda event: egg(), add="+")
+
+        go_in_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+        go_in_icon.place(x=1230, y=670, width=40, height=50, anchor="center")
+        tkt.Text(go_in_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons", anchor="nw")
+        go_in_icon.bind("<Button-1>", lambda event: wallpaper())
 
 
 
-    tkt.Text(canvas_index, [50, 70], text="主页", fontsize=40, anchor="w")
-    tkt.Text(canvas_index, [50, 110], text="小树壁纸6.0", fontsize=25, anchor="w")
+        tkt.Text(canvas_index, [50, 70], text="主页", fontsize=40, anchor="w")
+        tkt.Text(canvas_index, [50, 110], text="小树壁纸6.0 RC 预发行版", fontsize=25, anchor="w")
+    elif cog["home_page_style"] == "next":
+        tkt.Text(canvas_index, (40, 20), text="\ue700", fontsize=28, family="Segoe Fluent lcons", anchor="nw")
+        tkt.Text(canvas_index, (40, 70), text="", fontsize=30, family="Segoe Fluent lcons", anchor="nw")  
+        canvas_index.create_text(15,70,text="\uf464",font=("Segoe UI Icons",30),fill=get_windows_theme_color(),anchor="nw") 
+        # print(get_windows_theme_color())
+        to_setting_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+        to_setting_icon.place(x=60, y=670, width=40, height=50, anchor="center")
+        tkt.Text(to_setting_icon, (0, 10), text="", fontsize=30, family="Segoe Fluent lcons", anchor="nw")
+        to_setting_icon.bind("<Button-1>", lambda event: setting())
+
+        to_about_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+        to_about_icon.place(x=60, y=620, width=40, height=53, anchor="center")
+        tkt.Text(to_about_icon, (0, 10), text="", fontsize=33, family="Segoe Fluent lcons", anchor="nw")
+        to_about_icon.bind("<Button-1>", lambda event: about(), add="+")
+        to_about_icon.bind("<Button-2>", lambda event: about(), add="+")
+        to_about_icon.bind("<Button-3>", lambda event: egg(), add="+")
+
+        go_in_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+        go_in_icon.place(x=60, y=170, width=40, height=50, anchor="center")
+        tkt.Text(go_in_icon, (0, 10), text="\ue93c", fontsize=30, family="Segoe Fluent lcons", anchor="nw")
+        go_in_icon.bind("<Button-1>", lambda event: wallpaper())
+
+        tkt.Text(canvas_index, [100, 70], text="主页", fontsize=35, anchor="w")
+        tkt.Text(canvas_index, [100, 110], text="小树壁纸6.0 RC 预发行版", fontsize=25, anchor="w")
 
     @lru_cache(maxsize=None)
     def load_and_crop_image(image_path):
@@ -785,26 +834,44 @@ def index_window(*args):
     # 使用缓存的裁剪图片
     if cropped_image_cache is None:
         cropped_image_cache = load_and_crop_image(fn)
+    if cog["home_page_style"] == "default":
+        tkt.Image(canvas_index, [640, 320], image=tkt.PhotoImage(cropped_image_cache),anchor="center")
+        tkt.Text(canvas_index, (640, 100), text=f"今日{image_type}\n{b_title}\n{b_copyright}", fontsize=20, anchor="n", justify='center')
+
+        tkt.Text(canvas_index, (640, 440), text=f"详细信息", fontsize=15, anchor="n", justify='center')
+
+        more_about_pic_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+        more_about_pic_icon.place(x=640, y=490, width=40, height=50, anchor="center")
+        tkt.Text(more_about_pic_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons", anchor="nw")
     
-    tkt.Image(canvas_index, [640, 320], image=tkt.PhotoImage(cropped_image_cache),anchor="center")
-    tkt.Text(canvas_index, (640, 100), text=f"今日{image_type}\n{b_title}\n{b_copyright}", fontsize=20, anchor="n", justify='center')
+        if fn == "./assets/images/no_images.jpg":
+            more_about_pic_icon.bind("<Button-1>", lambda event: tkt.dialogs.TkMessage(icon="error", title="没有图片数据", message="数据获取失败，请稍后再试。"))
+        else:
+            more_about_pic_icon.bind("<Button-1>", lambda event: more_bing())
+        if have_update:
+                update_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+                update_icon.place(x=1280 // 2, y=670,width=40,height=50,anchor="center")
+                tkt.Text(update_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons",anchor="nw")
+                update_icon.bind("<Button-1>", lambda event: update_window())            
+    elif cog["home_page_style"] == "next":
+        tkt.Image(canvas_index, [100, 230], image=tkt.PhotoImage(cropped_image_cache),anchor="nw")
+        tkt.Text(canvas_index, (100, 140), text=f"今日{image_type}\n{b_title}\n{b_copyright}", fontsize=20, anchor="nw")
 
-    tkt.Text(canvas_index, (640, 440), text=f"详细信息", fontsize=15, anchor="n", justify='center')
+        # tkt.Text(canvas_index, (640, 440), text=f"详细信息", fontsize=15, anchor="n", justify='center')
 
-    more_about_pic_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
-    more_about_pic_icon.place(x=640, y=490, width=40, height=50, anchor="center")
-    tkt.Text(more_about_pic_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons", anchor="nw")
+        more_about_pic_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+        more_about_pic_icon.place(x=60, y=130, width=40, height=40, anchor="center")
+        tkt.Text(more_about_pic_icon, (0, 4), text="\uf738", fontsize=30, family="Segoe Fluent lcons", anchor="nw")
     
-    if fn == "./assets/images/no_images.jpg":
-        more_about_pic_icon.bind("<Button-1>", lambda event: tkt.dialogs.TkMessage(icon="error", title="没有图片数据", message="数据获取失败，请稍后再试。"))
-    else:
-        more_about_pic_icon.bind("<Button-1>", lambda event: more_bing())
-
-    if have_update:
-            update_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
-            update_icon.place(x=1280 // 2, y=670,width=40,height=50,anchor="center")
-            tkt.Text(update_icon, (0, 10), text="", fontsize=40, family="Segoe Fluent lcons",anchor="nw")
-            update_icon.bind("<Button-1>", lambda event: update_window())
+        if fn == "./assets/images/no_images.jpg":
+            more_about_pic_icon.bind("<Button-1>", lambda event: tkt.dialogs.TkMessage(icon="error", title="没有图片数据", message="数据获取失败，请稍后再试。"))
+        else:
+            more_about_pic_icon.bind("<Button-1>", lambda event: more_bing())
+        if have_update:
+                update_icon = tkt.Canvas(canvas_index, zoom_item=True, keep_ratio="min", free_anchor=True)
+                update_icon.place(x=110, y=670,width=40,height=50,anchor="center")
+                tkt.Text(update_icon, (0, 10), text="", fontsize=30, family="Segoe Fluent lcons",anchor="nw")
+                update_icon.bind("<Button-1>", lambda event: update_window())
 
 
 
@@ -829,8 +896,9 @@ tkt.Text(canvas_setting, (100, 50), text="设置", fontsize=50)
 changed_light_theme=False
 changed_dark_theme=False
 changed_font=False
-dark_theme_map="default"
+dark_theme_map=0
 now_font="霞鹜文楷"
+window_opacity=1
 def change_setting_page(page):
     global canvas_setting_pages
     global del_log,del_temp
@@ -840,7 +908,7 @@ def change_setting_page(page):
             canvas_setting_pages.destroy()
             canvas_setting_pages = tkt.Canvas(canvas_setting, zoom_item=True, keep_ratio="min", free_anchor=True)
             canvas_setting_pages.place(x=170, y=140, width=1000, height=500, anchor="nw")
-            tkt.Text(canvas_setting_pages, (10, 10), text="外观", fontsize=30, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 10), text="主题", fontsize=30, anchor="nw")
             tkt.Text(canvas_setting_pages, (10, 70), text="深/浅色模式切换", fontsize=20, anchor="nw")
             def change_color_mode(b):
                 global changed_dark_theme
@@ -858,39 +926,39 @@ def change_setting_page(page):
                 changed_dark_theme=False
                 match index:
                     case 6:
-                        tkt.style.set_theme_map(light=粉雕玉琢)
+                        tkt.style.set_theme_map(light_theme=粉雕玉琢)
                         tkt.style.set_color_mode("light")
                         coloe_mode_switch.set(False)
                     case 5:
-                        tkt.style.set_theme_map(light=原木秋色)
+                        tkt.style.set_theme_map(light_theme=原木秋色)
                         tkt.style.set_color_mode("light")
                         coloe_mode_switch.set(False)
                     case 0:
-                        tkt.style.set_theme_map(light=国行公祭)
+                        tkt.style.set_theme_map(light_theme=国行公祭)
                         tkt.style.set_color_mode("light")
                         coloe_mode_switch.set(False)
                     case 4:
-                        tkt.style.set_theme_map(light=粉花春色)
+                        tkt.style.set_theme_map(light_theme=粉花春色)
                         tkt.style.set_color_mode("light")
                         coloe_mode_switch.set(False)
                     case 3:
-                        tkt.style.set_theme_map(light=中秋月下)
+                        tkt.style.set_theme_map(light_theme=中秋月下)
                         tkt.style.set_color_mode("light")
                         coloe_mode_switch.set(False)
                     case 1:
-                        tkt.style.set_theme_map(light=欢庆春节)
+                        tkt.style.set_theme_map(light_theme=欢庆春节)
                         tkt.style.set_color_mode("light")
                         coloe_mode_switch.set(False)
                     case 2:
-                        tkt.style.set_theme_map(light=清明祭扫)
+                        tkt.style.set_theme_map(light_theme=清明祭扫)
                         tkt.style.set_color_mode("light")
                         coloe_mode_switch.set(False)
                     case 7:
-                        tkt.style.set_theme_map(light=黄昏蓝调)
+                        tkt.style.set_theme_map(light_theme=黄昏蓝调)
                         tkt.style.set_color_mode("light")
                         coloe_mode_switch.set(False)
 
-            light_mode_choose=tkt.SegmentedButton(canvas_setting_pages, [20, 170], texts=["国行公祭","欢庆春节","清明祭扫","中秋月下","粉花春色","原木秋色","粉雕玉琢","黄昏蓝调"], layout="horizontal", command=change_light_theme)
+            light_mode_choose=tkt.SegmentedButton(canvas_setting_pages, [20, 170], text=["国行公祭","欢庆春节","清明祭扫","中秋月下","粉花春色","原木秋色","粉雕玉琢","黄昏蓝调"], layout="horizontal", command=change_light_theme)
             if changed_light_theme:
                 
                 light_mode_choose.set(["国行公祭","欢庆春节","清明祭扫","中秋月下","粉花春色","原木秋色","粉雕玉琢","黄昏蓝调"].index(tkt.style.get_theme_map()["light"].__name__))
@@ -906,32 +974,20 @@ def change_setting_page(page):
                 coloe_mode_switch.set(tkt.style.SYSTEM_DARK_MODE)
                 light_mode_choose.destroy()
                 dark_theme_choose.destroy()
-                light_mode_choose=tkt.SegmentedButton(canvas_setting_pages, [20, 170], texts=["国行公祭","欢庆春节","清明祭扫","中秋月下","粉花春色","原木秋色","粉雕玉琢","黄昏蓝调"], layout="horizontal", command=change_light_theme)
-                dark_theme_choose=tkt.SegmentedButton(canvas_setting_pages, (20, 290), texts=["Acrylic", "Native"], layout="horizontal",command=change_dark_theme)
+                light_mode_choose=tkt.SegmentedButton(canvas_setting_pages, [20, 170], text=["国行公祭","欢庆春节","清明祭扫","中秋月下","粉花春色","原木秋色","粉雕玉琢","黄昏蓝调"], layout="horizontal", command=change_light_theme)
+                dark_theme_choose=tkt.SegmentedButton(canvas_setting_pages, (20, 290), text=("normal", "acrylic", "aero", "transparent",
+                  "optimised", "win7", "inverse", "native", "popup"), layout="horizontal",command=change_dark_theme)
             tkt.Button(canvas_setting_pages, (20, 230), text="重置主题", command=lambda: reset_theme_map(),size=(1000,30))
 
-            tkt.Text(canvas_setting_pages, (10, 260), text="自定义特殊效果模式(仅深色模式)  - 实验性功能", fontsize=20, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 260), text="自定义特殊效果模式(部分仅限深色模式)  - 实验性功能", fontsize=20, anchor="nw")
             
             def change_dark_theme(index):
                 global changed_dark_theme,dark_theme_map
                 tkt.dialogs.TkMessage(icon="warning", title="小树壁纸-警告", message="此功能为实验性功能，可能存在一些问题，请谨慎使用！")
                 changed_dark_theme=True
                 match index:
-                    case 0:
-                        coloe_mode_switch.set(True)
-                        tkt.style.set_color_mode("dark")
-                        tkt.style.set_color_mode("light")
-                        tkt.style.set_color_mode("dark")
-                        tkt.style.customize_window(
-                        root,
-                        style="acrylic",
-                        # hide_title_bar=True,
-                        hide_button="maxmin",
-                        # boarder_type="smallround",
-                        )
-                        tkt.style.set_color_mode("dark")
-                        
-                        dark_theme_map="acrylic"
+
+ 
                     case 1:
                         coloe_mode_switch.set(True)
                         tkt.style.set_color_mode("dark")
@@ -939,21 +995,69 @@ def change_setting_page(page):
                         tkt.style.set_color_mode("dark")
                         tkt.style.customize_window(
                         root,
-                        style="native",
+                        style=("normal", "acrylic", "aero", "transparent","optimised", "win7", "inverse", "native", "popup")[index],
                         # hide_title_bar=True,
                         hide_button="maxmin",
                         # boarder_type="smallround",
-                        )
+                        )     
+                        tkt.style.set_color_mode("dark")
+                    case 2:
+                        coloe_mode_switch.set(True)
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.set_color_mode("light")
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.customize_window(
+                        root,
+                        style=("normal", "acrylic", "aero", "transparent","optimised", "win7", "inverse", "native", "popup")[index],
+                        # hide_title_bar=True,
+                        hide_button="maxmin",
+                        # boarder_type="smallround",
+                        )     
+                        tkt.style.set_color_mode("dark")    
+                    case 3:
+                        coloe_mode_switch.set(True)
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.set_color_mode("light")
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.customize_window(
+                        root,
+                        style=("normal", "acrylic", "aero", "transparent","optimised", "win7", "inverse", "native", "popup")[index],
+                        # hide_title_bar=True,
+                        hide_button="maxmin",
+                        # boarder_type="smallround",
+                        )     
+                        tkt.style.set_color_mode("dark")                       
+                    case 7:
+                        coloe_mode_switch.set(True)
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.set_color_mode("light")
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.customize_window(
+                        root,
+                        style=("normal", "acrylic", "aero", "transparent","optimised", "win7", "inverse", "native", "popup")[index],
+                        # hide_title_bar=True,
+                        hide_button="maxmin",
+                        # boarder_type="smallround",
+                        )     
                         tkt.style.set_color_mode("dark")
                         
-                        dark_theme_map="native"
-            dark_theme_choose=tkt.SegmentedButton(canvas_setting_pages, (20, 290), texts=["Acrylic", "Native"], layout="horizontal",command=change_dark_theme)
-            if changed_dark_theme:
-                match dark_theme_map:
-                    case "acrylic":
-                        dark_theme_choose.set(0)
-                    case "native":
-                        dark_theme_choose.set(1)    
+                                                
+                    case _:
+                        tkt.style.set_color_mode("light")
+                        tkt.style.set_color_mode("dark")
+                        tkt.style.set_color_mode("light")
+                        tkt.style.customize_window(
+                        root,
+                        style=("normal",  "acrylic", "aero", "transparent","optimised", "win7", "inverse", "native", "popup")[index],
+                        # hide_title_bar=True,
+                        hide_button="maxmin",
+                        # boarder_type="smallround",
+                        )     
+                dark_theme_map=index                     
+                        
+            dark_theme_choose=tkt.SegmentedButton(canvas_setting_pages, (20, 290), text=("normal", "acrylic", "aero", "transparent",
+                  "optimised", "win7", "inverse", "native", "popup"), layout="horizontal",command=change_dark_theme)
+            dark_theme_choose.set(dark_theme_map)   
             tkt.Text(canvas_setting_pages, (10, 350), text="自定义字体 - 实验性功能", fontsize=20, anchor="nw")
             def change_font(index):
                 global changed_font,now_font
@@ -993,18 +1097,18 @@ def change_setting_page(page):
                         canvas_setting_pages.update()
                         canvas_setting_pages.update_idletasks()
                         choose_font.destroy()
-                        choose_font=tkt.SegmentedButton(canvas_setting_pages, (20, 380), texts=["霞鹜文楷",f"自定义-[{tkt.constants.FONT}]"], layout="horizontal",command=change_font,default=1)
+                        choose_font=tkt.SegmentedButton(canvas_setting_pages, (20, 380), text=["霞鹜文楷",f"自定义-[{tkt.constants.FONT}]"], layout="horizontal",command=change_font,default=1)
 
             if changed_font:
-                choose_font =tkt.SegmentedButton(canvas_setting_pages, (20, 380), texts=["霞鹜文楷",f"自定义-[{tkt.constants.FONT}]"], layout="horizontal",command=change_font,default=1)
+                choose_font =tkt.SegmentedButton(canvas_setting_pages, (20, 380), text=["霞鹜文楷",f"自定义-[{tkt.constants.FONT}]"], layout="horizontal",command=change_font,default=1)
             else:
-                choose_font =tkt.SegmentedButton(canvas_setting_pages, (20, 380), texts=["霞鹜文楷","自定义-[未选择]"], layout="horizontal",command=change_font,default=0)
+                choose_font =tkt.SegmentedButton(canvas_setting_pages, (20, 380), text=["霞鹜文楷","自定义-[未选择]"], layout="horizontal",command=change_font,default=0)
             
 
 
             
 
-        case 1:   
+        case 3:   
         
             canvas_setting_pages.delete("all")
             canvas_setting_pages.destroy()
@@ -1013,8 +1117,8 @@ def change_setting_page(page):
             tkt.Text(canvas_setting_pages, (10, 10), text="数据", fontsize=30, anchor="nw")
             tkt.Text(canvas_setting_pages, (10, 50), text="清理数据", fontsize=20, anchor="nw")
             tkt.Text(canvas_setting_pages, (10, 80), text=f"缓存文件：{get_folder_size("temp"):.2f}MB | 已保存的日志数量：{get_file_count('logs')}", fontsize=20, anchor="nw")
-            del_temp=tkt.Button(canvas_setting_pages, (10, 110), text="清空缓存", command=lambda: del_temp_folder(),size=(500,50))
-            del_log=tkt.Button(canvas_setting_pages, (510, 110), text="清空日志", command=lambda: del_log_folder(),size=(500,50))
+            del_temp=tkt.Button(canvas_setting_pages, (0, 110), text="清空缓存", command=lambda: del_temp_folder(),size=(500,50))
+            del_log=tkt.Button(canvas_setting_pages, (500, 110), text="清空日志", command=lambda: del_log_folder(),size=(500,50))
             tkt.Text(canvas_setting_pages, (10, 165), text="壁纸默认下载位置", fontsize=20, anchor="nw")
             path_show=tkt.Text(canvas_setting_pages, (10, 195), text=f"当前壁纸下载位置：{cog["download_path"]}", fontsize=20, anchor="nw")
             def change_download_path():
@@ -1030,9 +1134,88 @@ def change_setting_page(page):
                 logging.info(f"恢复默认下载位置: {Download_Path}")
                 path_show.set(f"当前壁纸下载位置：{Download_Path}")
                 save_cog()
-            tkt.Button(canvas_setting_pages, (10, 230), text="更改下载位置", command=change_download_path, size=(1000,50))
-            tkt.Button(canvas_setting_pages, (10, 280), text="恢复默认位置", command=change_download_path_default, size=(1000,50))
+            tkt.Button(canvas_setting_pages, (0, 230), text="更改下载位置", command=change_download_path, size=(1000,50))
+            tkt.Button(canvas_setting_pages, (0, 280), text="恢复默认位置", command=change_download_path_default, size=(1000,50))
+        case 1:
+            canvas_setting_pages.delete("all")
+            canvas_setting_pages.destroy()
+            canvas_setting_pages = tkt.Canvas(canvas_setting, zoom_item=True, keep_ratio="min", free_anchor=True)
+            canvas_setting_pages.place(x=170, y=140, width=1000, height=500, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 10), text="窗口", fontsize=30, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 50), text="窗口大小", fontsize=20, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 80), text=f"当前窗口大小：{root.winfo_width()}x{root.winfo_height()}", fontsize=20, anchor="nw")
+            # tkt.Text(canvas_setting_pages, (10, 110), text="窗口模式", fontsize=20, anchor="nw")
+            # def change_window_mode(mode):
+            #     global window_mode
+            #     window_mode = not mode
+
+            #     if window_mode:
+            #         root.attributes("-fullscreen", True)
+            #         logging.info("切换到全屏模式")
+            #     else:
+            #         root.attributes("-fullscreen", False)
+            #         logging.info("切换到窗口模式")
+            
+            # window_mode_choose=tkt.SegmentedButton(canvas_setting_pages, (20, 140), text=["全屏", "窗口"], layout="horizontal",command=change_window_mode,default=1)
+            # window_mode_choose.set(window_mode)
+
+                
+            
+            t=tkt.Text(canvas_setting_pages, (10, 145), text="窗口透明度 (%d%%)" % (root.alpha()*100), fontsize=20, anchor="nw")
+            tkt.Slider(canvas_setting_pages, (10, 180), (350, 30), command=lambda p: (t._texts[0].set("窗口透明度 (%d%%)" % (p*100)), root.alpha(p)), default=root.alpha())
+            tkt.Text(canvas_setting_pages, (10, 220), text="置顶", fontsize=20, anchor="nw")
+            tkt.Switch(canvas_setting_pages, (10, 250), command=lambda s: (root.attributes("-topmost", s), logging.info(f"置顶状态: {s}")), default=root.attributes("-topmost"))
+            tkt.Text(canvas_setting_pages, (100, 220), text="隐藏标题栏", fontsize=20, anchor="nw")  
+            tkt.Switch(canvas_setting_pages, (100, 250), command=lambda s: (root.overrideredirect(s), logging.info(f"隐藏标题栏状态: {s}")), default=root.overrideredirect())
         case 2:
+            canvas_setting_pages.delete("all")
+            canvas_setting_pages.destroy()
+            canvas_setting_pages = tkt.Canvas(canvas_setting, zoom_item=True, keep_ratio="min", free_anchor=True)
+            canvas_setting_pages.place(x=170, y=140, width=1000, height=500, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 10), text="主页", fontsize=30, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 50), text="主页背景(实验性功能)", fontsize=20, anchor="nw")
+            tkt.Text(canvas_setting_pages, (10, 80), text="当前背景：", fontsize=20, anchor="nw")
+            if cog['window_wallpaper_path'] == "":
+                current_bg=tkt.Text(canvas_setting_pages, (100, 80), text="无", fontsize=20, anchor="nw")
+
+            else:
+                current_bg=tkt.Text(canvas_setting_pages, (100, 80), text=f"{cog['window_wallpaper_path']}", fontsize=20, anchor="nw")
+            def change_bg():
+                new_bg = filedialog.askopenfilename(initialdir=cog["window_wallpaper_path"],title="选择壁纸",parent=root,filetypes=[("图片文件","*.jpg;*.png;*.jpeg")])
+                if new_bg:
+                    logging.info(f"用户选择的壁纸: {new_bg}")
+                    
+                    cog["window_wallpaper_path"] = new_bg
+                    #.replace("/","\\")
+                    save_cog()
+                    current_bg.set(f"{cog['window_wallpaper_path']}")
+                    
+                    # canvas_setting.create_image(0, 0, image=tkt.PhotoImage(file=cog['window_wallpaper_path']), anchor="nw")
+            def change_bg_default():
+                cog["window_wallpaper_path"] = ""
+                save_cog()
+                current_bg.set("无")
+            tkt.Button(canvas_setting_pages, (0, 110), text="更改背景", command=change_bg, size=(1000,50))
+            tkt.Button(canvas_setting_pages, (0, 160), text="移除背景", command=change_bg_default, size=(1000,50))
+            tkt.Text(canvas_setting_pages, (10, 210), text="主页布局", fontsize=20, anchor="nw")
+            def change_home_style(style):
+                global cog
+                match style:
+                    case 0:
+                        cog["home_page_style"] = "default"
+                        logging.info(f"用户选择的主页布局: 默认")
+                    case 1:
+                        cog["home_page_style"] = "next"
+                        logging.info(f"用户选择的主页布局: Next")
+                save_cog()
+            df=tkt.SegmentedButton(canvas_setting_pages, (20, 240), text=["默认", "Next"], layout="horizontal",command=change_home_style)
+            if cog['home_page_style'] == "default":
+                df.set(0)
+            elif cog['home_page_style'] == "next":
+                df.set(1)
+            
+
+        case 4:
 
             canvas_setting_pages.delete("all")
             canvas_setting_pages.destroy()
@@ -1061,11 +1244,11 @@ def change_setting_page(page):
         
 
             canvas_setting_pages.after(500, change_test_image)
-        case 3:
+        case 5:
             about()
-        case 4:
+        case 6:
             os._exit(0)
-tkt.SegmentedButton(canvas_setting, [80, 200], texts=["外观", "数据", "调试", "关于", "退出"], layout="vertical",command=change_setting_page)
+tkt.SegmentedButton(canvas_setting, [80, 200], text=["主题", "窗口", "主页", "数据", "调试", "关于", "退出"], layout="vertical",command=change_setting_page)
 # # 设置目标宽度或高度
 # base_width1 = 150  # 你可以根据需要调整这个值
 # # 计算比例并调整图片大小
@@ -1121,7 +1304,7 @@ def del_temp_folder():
     tkt.dialogs.TkMessage(
         icon="question", title="警告",
         message="你确定要清空 缓存 文件夹吗？",
-        detail="此操作不可恢复！", type="yesno",
+        detail="此操作不可恢复！", option="yesno",
         default="no", command=lambda result: return_choice(result)
     )
     if true_del:
@@ -1139,7 +1322,7 @@ def del_log_folder():
     tkt.dialogs.TkMessage(
         icon="warning", title="警告",
         message="你确定要清空 日志 文件夹吗？\n你需要知道你正在做什么! \n日志文件对于查找错误非常重要",
-        detail="这是一个危险行为，请谨慎操作！", type="yesno",
+        detail="这是一个危险行为，请谨慎操作！", option="yesno",
         default="no", command=lambda result: return_choice(result)
     )
     if true_del:
@@ -1339,7 +1522,7 @@ def wallpaper_detail(*args):
 #             url = f"https://source.unsplash.com/random/1920x1080/"
 #         else:
 #             url = f"https://source.unsplash.com/random"
-#     tkt.SegmentedButton(canvas_wallpaper_more_unsplash, (100, 25),texts= ["随机大小","1920x1080"], commands=(random_size, unsplash_1080P), default=0)
+#     tkt.SegmentedButton(canvas_wallpaper_more_unsplash, (100, 25),text= ["随机大小","1920x1080"], commands=(random_size, unsplash_1080P), default=0)
 #     tkt.Button(canvas_wallpaper_more_unsplash, (450, 30), text="获取数据", command=lambda: download_wallpaper())
 
 #### 壁纸面板-聚合源通用下载
@@ -1444,7 +1627,7 @@ def wallpaper_wallhaven():
         api_url="https://api.nguaduot.cn/wallhaven/today"
     def ch_return(ch1):
         (random_wallhaven, today_wallhaven)[ch1]()
-    tkt.SegmentedButton(canvas_wallpaper_more_wallhaven, (100, 25),texts= ["随机","每日"], command=ch_return, default=0)
+    tkt.SegmentedButton(canvas_wallpaper_more_wallhaven, (100, 25),text= ["随机","每日"], command=ch_return, default=0)
     tkt.Button(canvas_wallpaper_more_wallhaven, (450, 30), text="获取数据", command=lambda: download_wallpaper())  
 
 #### 壁纸面板-风景源
@@ -1466,7 +1649,7 @@ def wallpaper_风景():
                 api_url="https://api.dujin.org/pic/fengjing"
             case 1:
                 api_url="https://tu.ltyuanfang.cn/api/fengjing.php"
-    tkt.SegmentedButton(canvas_wallpaper_more_fengjing, (100, 25),texts= ["缙哥哥接口","远方接口"], command=风景_ch, default=0)
+    tkt.SegmentedButton(canvas_wallpaper_more_fengjing, (100, 25),text= ["缙哥哥接口","远方接口"], command=风景_ch, default=0)
     tkt.Button(canvas_wallpaper_more_fengjing, (450, 30), text="获取数据", command=lambda: download_wallpaper())    
 is_choose=None
 #### 壁纸面板-二次元源
@@ -1499,7 +1682,7 @@ def wallpaper_二次元():
                 case 1:
                     api_url="https://api.paugram.com/wallpaper/?source=github"
 
-        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["sm.ms-白底动漫","github.io-白底动漫"], command=paul_ch, default=0)
+        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),text= ["sm.ms-白底动漫","github.io-白底动漫"], command=paul_ch, default=0)
     def ciyuan_wallpaper():
         global is_choose,canvas_wallpaper_more_erciyuan,api_url
         api_url="https://t.mwm.moe/ysz"
@@ -1521,7 +1704,7 @@ def wallpaper_二次元():
                 case 5:
                     api_url="https://t.mwm.moe/moe"
 
-        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["原神","随机","AI生成","风景","小狐狸","萌图"], command=ciyuan_ch, default=0)
+        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),text= ["原神","随机","AI生成","风景","小狐狸","萌图"], command=ciyuan_ch, default=0)
     def other_wallpaper():
         global is_choose,canvas_wallpaper_more_erciyuan,api_url
         api_url="https://api.imlcd.cn/bg/acg.php"
@@ -1538,7 +1721,7 @@ def wallpaper_二次元():
                     api_url="https://www.dmoe.cc/random.php" 
                 case 3:
                     api_url=random.choice(["https://i.postimg.cc/zf2yRGXj/image.jpg","https://i.postimg.cc/ZRjVN3vQ/image.jpg","https://i.postimg.cc/FRVG56y8/4b290f6e-b886-effb-b9b1-4a97bbeea0fe.jpg","https://i.postimg.cc/3RZMSndJ/a3cde8b4-0197-1ad3-3760-9cb95dbc6517.jpg","https://i.postimg.cc/02RWMpQV/ea0ff1ca-0358-4fca-b2bb-5b3a51706bdc.jpg","https://i.postimg.cc/qRttT6HK/f5fd0dc2722faf65c455943574b087863546706878663505.jpg","https://i.postimg.cc/0NZ9J3vB/ss-f1ba762ccb2918909b05051891316f27ecbbb245-1920x1080.jpg"])
-        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),texts= ["[忆云]随机","[PAULZZH]东方","[樱花]随机","[个人收集]饿殍：明末千里行"], command=other_wallpaper_ch, default=0)
+        is_choose=tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 75),text= ["[忆云]随机","[PAULZZH]东方","[樱花]随机","[个人收集]饿殍：明末千里行"], command=other_wallpaper_ch, default=0)
 
 
     def 二次元_ch(ch1):
@@ -1551,8 +1734,8 @@ def wallpaper_二次元():
             case 2:
                 other_wallpaper()
         # print(bing_data)
-    tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 25),texts=["保罗源", "次元源","其他源"], command=二次元_ch, default=0)
-    # tkt.SegmentedButton(canvas_wallpaper_more, (100, 25),layout="vertical",texts=["[保罗]sm.ms-动漫", "[保罗]github.io-动漫", "[次元]原神","[次元]随机","[次元]AI生成","[次元]风景","[次元]小狐狸","[次元]萌图","[樱花]随机","[PAULZZH]东方"], commands=(), default=0)
+    tkt.SegmentedButton(canvas_wallpaper_more_erciyuan, (100, 25),text=["保罗源", "次元源","其他源"], command=二次元_ch, default=0)
+    # tkt.SegmentedButton(canvas_wallpaper_more, (100, 25),layout="vertical",text=["[保罗]sm.ms-动漫", "[保罗]github.io-动漫", "[次元]原神","[次元]随机","[次元]AI生成","[次元]风景","[次元]小狐狸","[次元]萌图","[樱花]随机","[PAULZZH]东方"], commands=(), default=0)
     is_choose=None
     paul_wallpaper()
     tkt.Button(canvas_wallpaper_more_erciyuan, (600, 30), text="获取数据", command=lambda: download_wallpaper()) 
@@ -1708,7 +1891,7 @@ def wallpaper_360():
                         tkt.Text(canvas_wallpaper_more_360_dowload, (100, 50), text="下载完成", fontsize=50, anchor="nw")
                         tkt.Text(canvas_wallpaper_more_360_dowload, (100, 130), text=f"请求页码:{pages.get()} | 最大页码:{json_data['data']['total_page']}", fontsize=25, anchor="nw")
                         tkt.Text(canvas_wallpaper_more_360_dowload, (100, 170), text=f"本页共{total_files}张图片", fontsize=25, anchor="nw")
-                        tkt.SegmentedButton(canvas_wallpaper_more_360_dowload,[100, 210],texts=list(range(1,total_files + 1)),command=lambda x: change_img(x),default=0)
+                        tkt.SegmentedButton(canvas_wallpaper_more_360_dowload,[100, 210],text=list(range(1,total_files + 1)),command=lambda x: change_img(x),default=0)
                         img_show_360=tkt.Image(canvas_wallpaper_more_360_dowload, (100, 300), image=resize_image(wallpaper_360_path_list[0], 270), anchor="nw")
                         now_show_img=wallpaper_360_path_list[0]
                         def save_as():
@@ -1869,7 +2052,7 @@ def wallpaper_360():
                 pb1 = tkt.ProgressBar(canvas_wallpaper_more_360_dowload, (100, 330), (600, 8))
 
                 # pb1.set(1)
-    tkt.SegmentedButton(canvas_wallpaper_more_360, (100, 25),texts= ["精选","风景","动物","动漫","插画","游戏","风格","科幻","美女","色系","汽车","影视"], command=wallpaper_360_get, default=0)
+    tkt.SegmentedButton(canvas_wallpaper_more_360, (100, 25),text= ["精选","风景","动物","动漫","插画","游戏","风格","科幻","美女","色系","汽车","影视"], command=wallpaper_360_get, default=0)
     tkt.Text(canvas_wallpaper_more_360, (100, 100), text="输入页码：", fontsize=20, anchor="nw")
     pages=tkt.InputBox(canvas_wallpaper_more_360, (100, 130))
     pages.set("1")
@@ -1892,7 +2075,7 @@ def wallpaper_choose(ch):
     (wallpaper_wallhaven,wallpaper_风景,wallpaper_二次元,wallpaper_360)[ch]()
     
 
-wallpaper_choose_button=tkt.SegmentedButton(canvas_wallpaper, (100, 150),texts= ["Wallhaven精选", "风景", "二次元", "360壁纸"], command=wallpaper_choose, default=0)
+wallpaper_choose_button=tkt.SegmentedButton(canvas_wallpaper, (100, 150),text= ["Wallhaven精选", "风景", "二次元", "360壁纸"], command=wallpaper_choose, default=0)
 
 
 ### ✨ Bing壁纸详细信息
@@ -2271,12 +2454,12 @@ def bing_detail():
     # canvas_detail.create_text(90, 440, text="版权警告：图片仅供作为壁纸使用，禁止用于其他用途", font=23,anchor="nw")
     # canvas_detail.create_image(130, 220, anchor="nw", image=tkt.PhotoImage(resized_image)) 
     # huazhiv=0
-    if image_type=="bing":
+    if image_type=="Bing":
         tkt.Text(canvas_detail,(980, 615),text="画质：",fontsize=18,anchor="center")
         # canvas_detail.create_text(980, 615, text="画质：", font=18)
         def ch_return(ch1):
             (huazhi_re1, huazhi_re2)[ch1]()
-        tkt.SegmentedButton(canvas_detail, (1000, 585), texts=(
+        tkt.SegmentedButton(canvas_detail, (1000, 585), text=(
             "1080P", "HUD(原图)"), default=0, command=ch_return)
     else:
         tkt.Text(canvas_detail,(980, 615),text="方向：",fontsize=18,anchor="center")
@@ -2288,7 +2471,7 @@ def bing_detail():
                     huazhiv=huazhiv
                 case "纵向":
                     huazhiv=index_detail["portrait_image"]
-        tkt.SegmentedButton(canvas_detail, (1000, 585), texts=(
+        tkt.SegmentedButton(canvas_detail, (1000, 585), text=(
             "横向", "纵向"), default=0, command=ch_return)        
     set_w_bing_icon = tkt.Canvas(canvas_detail, zoom_item=True, keep_ratio="min", free_anchor=True)
     set_w_bing_icon.place(x=1230, y=670,width=40,height=50,anchor="center")
@@ -2343,7 +2526,7 @@ def egg():
     # tkt.dialogs.TkMessage(icon="info",title="彩蛋",message="你发现了一个彩蛋！",detail="你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！\n\n你发现了一个彩蛋！")
     canvas_index.delete("all")
     canvas.place_forget()
-    canvas_index.pack_forget()
+    canvas_index.place_forget()
     canvas_egg.place(width=1280, height=720, x=640, y=360, anchor="center")
 
 def wallpaper():
@@ -2431,6 +2614,7 @@ def clean_filename(filename):
 
 def about():
     canvas_index.delete("all")
+    canvas_index.place_forget()
     canvas.place_forget()
     canvas_about.place(width=1280, height=720, x=640, y=360, anchor="center")
     # TODO: 后面记得改
@@ -2446,15 +2630,17 @@ def more_bing(*args):
     canvas_index.place_forget()
     bing_detail()
     canvas_detail.place(width=1280, height=720, x=640, y=360, anchor="center")
-
+    # TODO: tkt 3.0rc3时需修改
     canvas_detail.update_idletasks()
     canvas_detail._re_place()
-    
+    # canvas_index._zoom_children()
+    # canvas_index._zoom_self()
 def main():
+    global canvas_index
     # global last
     # if is_load_main is not True:
     #     index_window()
-    index_window()
+    
     canvas_setting.place_forget()
     canvas_about.place_forget()
     canvas_egg.place_forget()
@@ -2462,9 +2648,14 @@ def main():
     canvas_detail.delete("all")
     canvas_detail.place_forget()
     canvas_wallpaper.place_forget()
+    canvas_index.destroy()
+    canvas_index = tkt.Canvas(root, zoom_item=True, keep_ratio="min", free_anchor=True)
+    index_window()
     canvas_index.place(x=0, y=0, width=1366, height=768)
     # TODO: tkt 3.0rc3时需修改
     canvas_index.update_idletasks()
     canvas_index._re_place()
+    # canvas_index._zoom_children()
+    # canvas_index._zoom_self()
 
 root.mainloop()
