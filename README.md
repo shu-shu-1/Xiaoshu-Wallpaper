@@ -1,29 +1,38 @@
-## Xiaoshu Wallpaper / 小树壁纸
+# Xiaoshu Wallpaper / 小树壁纸 
 
-This software can quickly change and download wallpapers from Bing, Unsplash, and Wallpaper. Of course, it also supports more interfaces and can collect and automatically rotate the collections.
+<!--![logo](https://github.com/user-attachments/assets/064cab06-d6bd-4b68-b03a-d9ad37697acd)-->
 
-这款软件能快速更换和下载Bing、unsplash、wallpaper的壁纸，当然也支持更多接口，也能收藏和收藏自动轮换。
+![Visitor Count](http://estruyf-github.azurewebsites.net/api/VisitorHit?user=shu-shu-1&repo=Xiaoshu-Wallpaper&countColor=%237B1E7B)
 
-There will be more features opened successively in the future...
+---
 
-未来还有更多功能相继开放……
 
-If you think it's good, why not give it a Star.
+## Overview / 概述
 
-如果觉得不错，不妨点个Star吧。
+Xiaoshu Wallpaper is a versatile app designed to quickly change and download wallpapers from a variety of sources, including Bing, 360, and Wallpaper. ✨ In addition, it supports multiple interfaces that allow users to bookshop and automatically rotate their favorite wallpapers.
+
+小树壁纸是一款多功能应用程序，旨在快速更换和下载来自多种来源的壁纸，包括 Bing、360 和 Wallpaper。✨ 另外，它支持多种接口，允许用户收藏并自动轮换他们喜欢的壁纸。
+
+Stay tuned for more exciting features coming soon! 🎉
+
+如果您喜欢这个项目，不妨点个 ⭐️吧！
 
 ## Release Notes / 版本发行说明
 
-The version number naming rule used by this program: [Semantic Versioning 2.0.0](https://semver.org/)
+This project follows the versioning conventions of [Semantic Versioning 2.0.0](https://semver.org/). 📦
 
-本程序版本号使用命名使用规则：[语义化版本 2.0.0](https://semver.org/lang/zh-CN/)
+本项目采用[语义化版本 2.0.0](https://semver.org/lang/zh-CN/)的版本命名规则。
 
 ## Special Thanks / 特别感谢
 
-Special thanks to the author [Xiaokang2022](https://github.com/Xiaokang2022) of the project [tkintertools](https://github.com/Xiaokang2022/tkintertools) for technical support to this project!
+A special thanks to [Xiaokang2022](https://github.com/Xiaokang2022), the author of [tkintertools](https://github.com/Xiaokang2022/tkintertools), for their invaluable technical support! 🙏
 
-特别感谢项目 [tkintertools](https://github.com/Xiaokang2022/tkintertools) 的作者 [Xiaokang2022](https://github.com/Xiaokang2022) 对本项目的技术支持！
+特别感谢项目[tkintertools](https://github.com/Xiaokang2022/tkintertools)的作者[Xiaokang2022](https://github.com/Xiaokang2022)对本项目的技术支持！
 
-## Star History / Star 趋势
+## Star History / Star 趋势 🌟
 
 [![Star History Chart](https://api.star-history.com/svg?repos=shu-shu-1/BingWallpaper&type=Date)](https://star-history.com/#shu-shu-1/BingWallpaper&Date)
+
+---
+
+Feel free to explore, contribute, and help improve the project! 🚀 欢迎随时探索、贡献和帮助改进此项目！
