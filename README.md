@@ -40,4 +40,6 @@ A special thanks to [Xiaokang2022](https://github.com/Xiaokang2022), the author 
 
 ---
 
-Feel free to explore, contribute, and help improve the project! 🚀 欢迎随时探索、贡献和帮助改进此项目！
+Feel free to explore, contribute, 和 help improve the project! 
+
+🚀 欢迎随时探索、贡献和帮助改进此项目！
