@@ -8,7 +8,7 @@ Support for security updates
 
 | Version 版本 | Supported 支持                                               |
 | ------------ | ------------------------------------------------------------ |
-| 6.0.0-alpha.x  | Active security update support 积极的安全更新支持            |
+| 6.0.0-rc.x  | Active security update support 积极的安全更新支持            |
 | 5.1          | Only support updates that have serious security impacts 仅支持影响严重的安全的更新 |
 | 5.0.x        | Not supported 不受支持                                       |
 | 4.5.x        | Only support updates that have serious security impacts 仅支持影响严重的安全的更新 |
