@@ -1,3 +1,7 @@
+> [!WARNING]
+> Here is the code repository for the beta version 6.0, 和 the stable version of the code switches to the 5.1 branch
+> 这里是 6.0 测试版的代码仓库，稳定版代码切换到5.1分支
+
 # Xiaoshu Wallpaper / 小树壁纸 
 
 <!--![logo](https://github.com/user-attachments/assets/064cab06-d6bd-4b68-b03a-d9ad37697acd)-->
