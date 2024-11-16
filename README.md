@@ -36,7 +36,7 @@ A special thanks to [Xiaokang2022](https://github.com/Xiaokang2022), the author 
 
 ## Star History / Star 趋势 🌟
 
-[![Star History Chart](https://api.star-history.com/svg?repos=shu-shu-1/BingWallpaper&type=Date)](https://star-history.com/#shu-shu-1/BingWallpaper&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=shu-shu-1/Xiaoshu-Wallpaper&type=Date)](https://star-history.com/#shu-shu-1/BingWallpaper&Date)
 
 ---
 
